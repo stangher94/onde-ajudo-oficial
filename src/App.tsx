@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 
-// Interfaces para tipagem dos dados
+// Interfaces atualizadas para incluir foto, site e facebook
 interface Instituicao {
   id: string;
   nome_instituicao: string;
   categoria: string;
   whatsapp_contato: string;
   link_instagram: string;
-  link_facebook: string;
+  link_facebook: string; // Coluna mapeada e ativa
+  link_site?: string; 
   chave_pix: string;
   beneficiario_pix: string;
   endereco_completo: string;
@@ -17,30 +18,31 @@ interface Instituicao {
   descricao_breve: string;
   capacidade_atendimento: string;
   publico_alvo: string;
+  foto_url?: string; 
 }
 
-interface Necessidade {
+interface table_necessidade {
   id: string;
   instituicao_id: string;
   categoria: string;
-  item_nome: string; // Nome correto de acordo com a planilha
+  item_nome: string; 
   status_urgencia: string;
   especificacoes: string;
 }
 
 export default function App() {
   const [instituicoes, setInstituicoes] = useState<Instituicao[]>([]);
-  const [necessidades, setNecessidades] = useState<Necessidade[]>([]);
+  const [necessidades, setNecessidades] = useState<table_necessidade[]>([]);
   const [carregando, setCarregando] = useState(true);
   
-  // Estado para controlar o balão personalizado de PIX copiado
+  // Controle de Navegação e Busca
+  const [instituicaoSelecionada, setInstituicaoSelecionada] = useState<Instituicao | null>(null);
+  const [busca, setBusca] = useState('');
   const [mostrarToast, setMostrarToast] = useState(false);
 
-  // Seus links do Google Sheets oficiais
   const URL_INSTITUICOES = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSaWeGht1cmXAtk0D5tpJmkgGIBSqWQ4vvu-guflduOTzpXZSAvfMblOfZGmxtXA-eijzP_ZdBFWPGB/pub?gid=0&single=true&output=csv";
   const URL_NECESSIDADES = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSaWeGht1cmXAtk0D5tpJmkgGIBSqWQ4vvu-guflduOTzpXZSAvfMblOfZGmxtXA-eijzP_ZdBFWPGB/pub?gid=1406763821&single=true&output=csv";
 
-  // INJEÇÃO DO TAILWIND E FONTAWESOME EM TEMPO REAL
   useEffect(() => {
     const scriptTailwind = document.createElement('script');
     scriptTailwind.src = "https://cdn.tailwindcss.com";
@@ -67,12 +69,12 @@ export default function App() {
 
         const resNec = await fetch(URL_NECESSIDADES);
         const textNec = await resNec.text();
-        const dadosNec = interpretarCSV(textNec) as Necessidade[];
+        const dadosNec = interpretarCSV(textNec) as table_necessidade[];
 
         setInstituicoes(dadosInst.filter(i => i.nome_instituicao && i.id));
         setNecessidades(dadosNec.filter(n => n.item_nome && n.instituicao_id));
       } catch (error) {
-        console.error("Erro ao conectar planilhas:", error);
+        console.error("Erro ao carregar dados:", error);
       } finally {
         setCarregando(false);
       }
@@ -92,7 +94,7 @@ export default function App() {
       let dentroDeAspas = false;
 
       for (let i = 0; i < linha.length; i++) {
-        const char = linha[i];
+        const char = inlineChar(linha, i);
         if (char === '"') {
           dentroDeAspas = !dentroDeAspas;
         } else if (char === ',' && !dentroDeAspas) {
@@ -114,19 +116,18 @@ export default function App() {
     });
   }
 
+  function inlineChar(str: string, idx: number) {
+    return str[idx];
+  }
+
   const obterNecessidadesDaInstituicao = (idInst: string) => {
-    const limpo = String(idInst).trim();
-    return necessidades.filter(n => String(n.instituicao_id).trim() === limpo);
+    return necessidades.filter(n => String(n.instituicao_id).trim() === String(idInst).trim());
   };
 
   const copiarParaClipBoard = (pix: string) => {
     navigator.clipboard.writeText(pix);
-    
-    // Mostra o feedback visual moderno na tela e esconde depois de 2 segundos
     setMostrarToast(true);
-    setTimeout(() => {
-      setMostrarToast(false);
-    }, 2000);
+    setTimeout(() => setMostrarToast(false), 2000);
   };
 
   const obterConfigUrgencia = (status: string) => {
@@ -172,173 +173,341 @@ export default function App() {
     };
   };
 
+  const instituicoesFiltradas = instituicoes.filter(inst => {
+    const termo = busca.toLowerCase();
+    return (
+      inst.nome_instituicao.toLowerCase().includes(termo) ||
+      inst.bairro.toLowerCase().includes(termo) ||
+      inst.categoria.toLowerCase().includes(termo)
+    );
+  });
+
   return (
     <div className="bg-slate-100 font-sans min-h-screen flex justify-center items-start p-0 sm:p-4 relative">
       
-      {/* Simulador de Tela de Celular */}
-      <div className="w-full max-w-md bg-white min-h-screen sm:min-h-[850px] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200 relative">
+      {/* Simulador de Celular */}
+      <div className="w-full max-w-md bg-slate-50 min-h-screen sm:min-h-[850px] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200 relative">
         
-        {/* Header Fixo */}
-        <header className="bg-emerald-600 text-white px-4 py-3 flex items-center justify-between shadow-md shrink-0">
+        {/* HEADER */}
+        <header className="bg-emerald-600 text-white px-4 py-3 flex items-center justify-between shadow-md shrink-0 z-10">
           <div className="flex items-center gap-2">
-            <i className="fa-solid fa-heart-circle-check text-xl text-emerald-200"></i>
-            <h1 className="font-extrabold tracking-wide text-lg">Onde Ajudo?</h1>
+            {instituicaoSelecionada ? (
+              <button 
+                onClick={() => setInstituicaoSelecionada(null)}
+                className="mr-2 text-white hover:text-emerald-200 transition text-lg cursor-pointer flex items-center gap-1.5"
+              >
+                <i className="fa-solid fa-chevron-left"></i>
+                <span className="text-sm font-semibold">Voltar</span>
+              </button>
+            ) : (
+              <>
+                <i className="fa-solid fa-heart-circle-check text-xl text-emerald-200"></i>
+                <h1 className="font-extrabold tracking-wide text-lg">Onde Ajudo?</h1>
+              </>
+            )}
           </div>
           <span className="bg-emerald-700 text-emerald-100 text-xs px-2.5 py-1 rounded-full font-medium">
             <i className="fa-solid fa-location-dot mr-1"></i>
-            {instituicoes[0] ? `${instituicoes[0].cidade} - ${instituicoes[0].estado}` : 'Carregando...'}
+            {instituicoes[0] ? `${instituicoes[0].cidade} - ${instituicoes[0].estado}` : 'SP'}
           </span>
         </header>
 
-        {/* Conteúdo Principal */}
-        <main className="flex-1 overflow-y-auto p-4 space-y-5">
+        {/* CONTEÚDO */}
+        <main className="flex-1 overflow-y-auto p-4">
           {carregando ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+            <div className="flex flex-col items-center justify-center py-32 text-slate-500">
               <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-600 mb-4"></div>
-              <p className="text-sm font-semibold">Carregando dados das instituições...</p>
+              <p className="text-sm font-semibold">Carregando informações...</p>
             </div>
-          ) : (
-            instituicoes.map((inst) => {
-              const minhasNecessidades = obterNecessidadesDaInstituicao(inst.id);
-              const linkWhats = `https://api.whatsapp.com/send?phone=55${inst.whatsapp_contato.replace(/\D/g, '')}&text=Olá! Gostaria de ajudar a instituição.`;
-              const linkMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(inst.nome_instituicao + ', ' + inst.endereco_completo)}`;
+          ) : !instituicaoSelecionada ? (
+            
+            /* TELA 1: LISTAGEM */
+            <div className="space-y-4 animate-fadeIn">
+              
+              <div className="relative">
+                <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input 
+                  type="text" 
+                  placeholder="Buscar por nome, bairro ou categoria..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition shadow-xs"
+                />
+              </div>
 
-              return (
-                <div key={inst.id} className="space-y-5">
-                  
-                  {/* Card de Identificação */}
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/60 shadow-sm">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h2 className="text-xl font-bold text-slate-800">{inst.nome_instituicao}</h2>
-                        <p className="text-sm font-semibold text-emerald-600">
-                          <i className="fa-solid fa-map-pin mr-1"></i>Bairro: {inst.bairro}
-                        </p>
-                      </div>
-                      {inst.publico_alvo && (
-                        <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-md shrink-0">
-                          {inst.capacidade_atendimento} {inst.publico_alvo}
-                        </span>
-                      )}
-                    </div>
-                    {inst.descricao_breve && (
-                      <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                        {inst.descricao_breve}
-                      </p>
-                    )}
-                    
-                    {/* Botões de Ação Rápida */}
-                    <div className="grid grid-cols-3 gap-2">
-                      {inst.link_instagram ? (
-                        <a href={inst.link_instagram} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center bg-white border border-slate-200 py-2 rounded-xl hover:bg-slate-100 transition shadow-sm text-pink-600">
-                          <i className="fa-brands fa-instagram text-lg mb-0.5"></i>
-                          <span className="text-[10px] font-bold text-slate-700">Instagram</span>
-                        </a>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center bg-slate-100 opacity-40 border border-slate-200 py-2 rounded-xl text-slate-400">
-                          <i className="fa-brands fa-instagram text-lg mb-0.5"></i>
-                          <span className="text-[10px] font-bold">Sem Instagram</span>
+              <div className="flex justify-between items-center px-1">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Instituições Cadastradas ({instituicoesFiltradas.length})
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {instituicoesFiltradas.length > 0 ? (
+                  instituicoesFiltradas.map((inst) => {
+                    const totalNec = obterNecessidadesDaInstituicao(inst.id).length;
+                    const fotoExibicao = inst.foto_url && inst.foto_url.trim() !== "" 
+                      ? inst.foto_url 
+                      : "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=200&h=200";
+
+                    return (
+                      <div 
+                        key={inst.id}
+                        onClick={() => setInstituicaoSelecionada(inst)}
+                        className="bg-white rounded-2xl p-3 border border-slate-100 hover:border-emerald-500/30 shadow-xs flex gap-3.5 items-center cursor-pointer hover:shadow-md transition-all duration-200 active:scale-[0.99]"
+                      >
+                        <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-100">
+                          <img 
+                            src={fotoExibicao} 
+                            alt={inst.nome_instituicao}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=200&h=200";
+                            }}
+                          />
                         </div>
-                      )}
 
-                      <a href={linkWhats} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center bg-white border border-slate-200 py-2 rounded-xl hover:bg-slate-100 transition shadow-sm text-emerald-600">
-                        <i className="fa-brands fa-whatsapp text-lg mb-0.5"></i>
-                        <span className="text-[10px] font-bold text-slate-700">WhatsApp</span>
-                      </a>
-
-                      {inst.chave_pix ? (
-                        <button onClick={() => copiarParaClipBoard(inst.chave_pix)} className="flex flex-col items-center justify-center bg-emerald-50 border border-emerald-200 py-2 rounded-xl hover:bg-emerald-100 transition shadow-sm text-emerald-700 cursor-pointer">
-                          <i className="fa-solid fa-copy text-lg mb-0.5"></i>
-                          <span className="text-[10px] font-bold text-emerald-800">Copiar PIX</span>
-                        </button>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center bg-slate-100 opacity-40 border border-slate-200 py-2 rounded-xl text-slate-400">
-                          <i className="fa-solid fa-copy text-lg mb-0.5"></i>
-                          <span className="text-[10px] font-bold">Sem PIX</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Termômetros */}
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                      <i className="fa-solid fa-list-check"></i> Termômetro de Necessidades
-                    </h3>
-                    
-                    <div className="space-y-4">
-                      {minhasNecessidades.length > 0 ? (
-                        minhasNecessidades.map((nec) => {
-                          const config = obterConfigUrgencia(nec.status_urgencia);
-                          const linkDoacaoWhats = `https://api.whatsapp.com/send?phone=55${inst.whatsapp_contato.replace(/\D/g, '')}&text=Olá! Quero ajudar a doar o item: *${nec.item_nome}* (${nec.especificacoes || 'Sem especificações'})`;
+                        <div className="flex-1 min-w-0 py-0.5">
+                          <span className="inline-block bg-slate-100 text-slate-600 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider mb-1">
+                            {inst.categoria}
+                          </span>
+                          <h3 className="text-[15px] font-bold text-slate-800 leading-snug truncate">
+                            {inst.nome_instituicao}
+                          </h3>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            <i className="fa-solid fa-map-pin mr-1 text-slate-400"></i> Bairro: {inst.bairro}
+                          </p>
                           
-                          return (
-                            <div key={nec.id} className={`bg-white border-l-4 ${config.border} rounded-xl p-3 shadow-xs border border-slate-100 ${config.opacity}`}>
-                              <div className="flex justify-between items-center mb-1.5">
-                                <span className="font-bold text-slate-800 text-sm">{nec.item_nome}</span>
-                                <span className={`text-xs font-bold px-2 py-0.5 rounded-sm uppercase tracking-wide ${config.badgeBg}`}>
-                                  {config.badgeText}
-                                </span>
-                              </div>
-                              
-                              {/* Barra de Progresso */}
-                              <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-2">
-                                <div className={`${config.barBg} h-full rounded-full transition-all duration-500`} style={{ width: config.barWidth }}></div>
-                              </div>
-                              
-                              <p className="text-xs text-slate-500 mb-2.5">
-                                <i className={`fa-solid ${config.textIcon} mr-1`}></i>
-                                {nec.especificacoes ? `(${nec.especificacoes}) ` : ''}{config.textoStatus}
-                              </p>
-
-                              {config.exibirBotao && (
-                                <a 
-                                  href={linkDoacaoWhats}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className={`block text-center w-full ${config.btnColor} font-bold py-2.5 rounded-lg text-xs transition shadow-sm cursor-pointer`}
-                                >
-                                  Quero Doar Este Item
-                                </a>
-                              )}
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="text-center py-6 bg-slate-50 rounded-xl text-slate-400 text-xs italic">
-                          Nenhuma necessidade cadastrada no momento. ❤️
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-[11px] font-semibold text-emerald-600">
+                              <i className="fa-solid fa-circle-info mr-1"></i> Ver detalhes
+                            </span>
+                            {totalNec > 0 && (
+                              <span className="bg-rose-50 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                {totalNec} itens pendentes
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
+
+                        <div className="text-slate-300 pr-1">
+                          <i className="fa-solid fa-chevron-right text-sm"></i>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-12 bg-white rounded-2xl border border-slate-100 text-slate-400 text-xs italic">
+                    Nenhuma instituição encontrada para sua busca. 🔍
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+          ) : (
+            
+            /* TELA 2: DETALHES AVANÇADOS */
+            <div className="space-y-5 animate-fadeIn">
+              
+              <button 
+                onClick={() => setInstituicaoSelecionada(null)}
+                className="bg-white border border-slate-200 text-slate-700 px-3 py-1.5 rounded-full text-xs font-bold shadow-xs hover:bg-slate-50 transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <i className="fa-solid fa-arrow-left"></i> Voltar para Lista
+              </button>
+
+              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                
+                <div className="flex gap-4 items-start mb-4">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-slate-100">
+                    <img 
+                      src={instituicaoSelecionada.foto_url && instituicaoSelecionada.foto_url.trim() !== "" 
+                        ? instituicaoSelecionada.foto_url 
+                        : "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=200&h=200"} 
+                      alt={instituicaoSelecionada.nome_instituicao}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <span className="bg-emerald-50 text-emerald-700 text-[10px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">
+                      {instituicaoSelecionada.categoria}
+                    </span>
+                    <h2 className="text-xl font-extrabold text-slate-800 leading-tight mt-1">{instituicaoSelecionada.nome_instituicao}</h2>
+                    <p className="text-xs font-semibold text-emerald-600 mt-0.5">
+                      <i className="fa-solid fa-map-pin mr-1"></i>Bairro: {instituicaoSelecionada.bairro}
+                    </p>
+                  </div>
+                </div>
+
+                {instituicaoSelecionada.publico_alvo && (
+                  <div className="mb-4">
+                    <span className="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-md">
+                      <i className="fa-solid fa-users mr-1"></i> Atende: {instituicaoSelecionada.capacidade_atendimento} {instituicaoSelecionada.publico_alvo}
+                    </span>
+                  </div>
+                )}
+
+                {instituicaoSelecionada.descricao_breve && (
+                  <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                    {instituicaoSelecionada.descricao_breve}
+                  </p>
+                )}
+                
+                {/* Painel de Botões em Duas Linhas Harmônicas */}
+                <div className="space-y-2">
+                  
+                  {/* LINHA 1: Redes Sociais e Site */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {/* Instagram */}
+                    {instituicaoSelecionada.link_instagram ? (
+                      <a href={instituicaoSelecionada.link_instagram} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 py-2 rounded-xl hover:bg-slate-100 transition shadow-xs text-pink-600">
+                        <i className="fa-brands fa-instagram text-base"></i>
+                        <span className="text-[10px] font-bold text-slate-700">Instagram</span>
+                      </a>
+                    ) : (
+                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-100 py-2 rounded-xl text-slate-400">
+                        <i className="fa-brands fa-instagram text-base"></i>
+                        <span className="text-[10px] font-bold">Instagram</span>
+                      </div>
+                    )}
+
+                    {/* Facebook (Nova adição) */}
+                    {instituicaoSelecionada.link_facebook ? (
+                      <a href={instituicaoSelecionada.link_facebook} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 py-2 rounded-xl hover:bg-slate-100 transition shadow-xs text-blue-800">
+                        <i className="fa-brands fa-facebook text-base"></i>
+                        <span className="text-[10px] font-bold text-slate-700">Facebook</span>
+                      </a>
+                    ) : (
+                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-100 py-2 rounded-xl text-slate-400">
+                        <i className="fa-brands fa-facebook text-base"></i>
+                        <span className="text-[10px] font-bold">Facebook</span>
+                      </div>
+                    )}
+
+                    {/* Site */}
+                    {instituicaoSelecionada.link_site ? (
+                      <a href={instituicaoSelecionada.link_site} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 py-2 rounded-xl hover:bg-slate-100 transition shadow-xs text-blue-600">
+                        <i className="fa-solid fa-globe text-base"></i>
+                        <span className="text-[10px] font-bold text-slate-700">Website</span>
+                      </a>
+                    ) : (
+                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-100 py-2 rounded-xl text-slate-400">
+                        <i className="fa-solid fa-globe text-base"></i>
+                        <span className="text-[10px] font-bold">Website</span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Logística (Card Escuro) */}
-                  <div className="bg-slate-950 text-slate-200 rounded-2xl p-4 shadow-md space-y-3">
-                    <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                      <i className="fa-solid fa-truck-ramp-box"></i>
-                      <h4>Pontos de Entrega Física</h4>
-                    </div>
-                    <div className="text-xs space-y-1.5 leading-relaxed text-slate-300">
-                      <p><strong className="text-white">Endereço:</strong> {inst.endereco_completo} - {inst.bairro}</p>
-                      <p><strong className="text-white">Cidade:</strong> {inst.cidade} - {inst.estado}</p>
-                    </div>
+                  {/* LINHA 2: Contato e PIX (Destaques de Ação) */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* WhatsApp */}
                     <a 
-                      href={linkMaps}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                      href={`https://api.whatsapp.com/send?phone=55${instituicaoSelecionada.whatsapp_contato.replace(/\D/g, '')}&text=Olá! Gostaria de ajudar a instituição.`} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl transition shadow-xs"
                     >
-                      <i className="fa-solid fa-location-arrow text-emerald-400"></i> Traçar Rota no GPS / Mapas
+                      <i className="fa-brands fa-whatsapp text-lg"></i>
+                      <span className="text-xs font-bold">Chamar no WhatsApp</span>
                     </a>
+
+                    {/* PIX */}
+                    {instituicaoSelecionada.chave_pix ? (
+                      <button 
+                        onClick={() => copiarParaClipBoard(instituicaoSelecionada.chave_pix)} 
+                        className="flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 transition shadow-xs text-emerald-700 cursor-pointer py-2.5 rounded-xl"
+                      >
+                        <i className="fa-solid fa-copy text-base"></i>
+                        <span className="text-xs font-bold text-emerald-800">Copiar PIX</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 bg-slate-50 opacity-40 border border-slate-100 py-2.5 rounded-xl text-slate-400">
+                        <i className="fa-solid fa-copy text-base"></i>
+                        <span className="text-xs font-bold">Sem PIX</span>
+                      </div>
+                    )}
                   </div>
 
                 </div>
-              );
-            })
+
+              </div>
+
+              {/* Termômetros */}
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                  <i className="fa-solid fa-list-check"></i> Termômetro de Necessidades
+                </h3>
+                
+                <div className="space-y-4">
+                  {obterNecessidadesDaInstituicao(instituicaoSelecionada.id).length > 0 ? (
+                    obterNecessidadesDaInstituicao(instituicaoSelecionada.id).map((nec) => {
+                      const config = obterConfigUrgencia(nec.status_urgencia);
+                      const linkDoacaoWhats = `https://api.whatsapp.com/send?phone=55${instituicaoSelecionada.whatsapp_contato.replace(/\D/g, '')}&text=Olá! Quero ajudar a doar o item: *${nec.item_nome}* (${nec.especificacoes || 'Sem especificações'})`;
+                      
+                      return (
+                        <div key={nec.id} className={`bg-white border-l-4 ${config.border} rounded-xl p-3 shadow-xs border border-slate-100 ${config.opacity}`}>
+                          <div className="flex justify-between items-center mb-1.5">
+                            <span className="font-bold text-slate-800 text-sm">{nec.item_nome}</span>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-sm uppercase tracking-wide ${config.badgeBg}`}>
+                              {config.badgeText}
+                            </span>
+                          </div>
+                          
+                          <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-2">
+                            <div className={`${config.barBg} h-full rounded-full transition-all duration-500`} style={{ width: config.barWidth }}></div>
+                          </div>
+                          
+                          <p className="text-xs text-slate-500 mb-2.5">
+                            <i className={`fa-solid ${config.textIcon} mr-1`}></i>
+                            {nec.especificacoes ? `(${nec.especificacoes}) ` : ''}{config.textoStatus}
+                          </p>
+
+                          {config.exibirBotao && (
+                            <a 
+                              href={linkDoacaoWhats}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`block text-center w-full ${config.btnColor} font-bold py-2.5 rounded-lg text-xs transition shadow-sm cursor-pointer`}
+                            >
+                              Quero Doar Este Item
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8 bg-white rounded-2xl border border-slate-100 text-slate-400 text-xs italic">
+                      Nenhuma necessidade cadastrada no momento. ❤️
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Endereço / GPS */}
+              <div className="bg-slate-900 text-slate-200 rounded-2xl p-4 shadow-md space-y-3">
+                <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                  <i className="fa-solid fa-truck-ramp-box"></i>
+                  <h4>Pontos de Entrega Física</h4>
+                </div>
+                <div className="text-xs space-y-1.5 leading-relaxed text-slate-300">
+                  <p><strong className="text-white">Endereço:</strong> {instituicaoSelecionada.endereco_completo} - {instituicaoSelecionada.bairro}</p>
+                  <p><strong className="text-white">Cidade:</strong> {instituicaoSelecionada.cidade} - {instituicaoSelecionada.estado}</p>
+                </div>
+                <a 
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(instituicaoSelecionada.nome_instituicao + ', ' + instituicaoSelecionada.endereco_completo)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <i className="fa-solid fa-location-arrow text-emerald-400"></i> Traçar Rota no GPS / Mapas
+                </a>
+              </div>
+
+            </div>
           )}
         </main>
 
-        {/* TOAST DE CONFIRMAÇÃO DE PIX COPIADO PREMIUM */}
+        {/* TOAST DE CONFIRMAÇÃO DE PIX */}
         {mostrarToast && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold py-3 px-6 rounded-2xl shadow-xl flex items-center gap-2 border border-slate-800 animate-bounce transition-all duration-300 z-50">
             <span className="text-emerald-400 text-sm">❤️</span> Chave PIX copiada com sucesso!
