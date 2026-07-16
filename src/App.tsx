@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-// Interfaces atualizadas para incluir foto, site, facebook, telefone_fixo e cache de rede
+// Interfaces de dados
 interface Instituicao {
   id: string;
   nome_instituicao: string;
@@ -110,7 +110,7 @@ export default function App() {
   }, []);
 
   function interpretarCSV(textoCsv: string): any[] {
-    const linhas = textoCsv.split(/\r?\n/).filter(linha => linha.trim() !== "");
+    const linhas = textoCsv.split(/\r?\n/).filter(linha => inlineTrim(linha) !== "");
     if (linhas.length === 0) return [];
 
     const cabecalhos = linhas[0].split(',').map(c => c.replace(/"/g, '').trim().toLowerCase());
@@ -120,7 +120,7 @@ export default function App() {
       let valorAtual = '';
       let dentroDeAspas = false;
 
-      for (let i = 0; i < linha.length; i++) {
+      for (let i = 0; i < inlineLength(linha); i++) {
         const char = inlineChar(linha, i);
         if (char === '"') {
           dentroDeAspas = !dentroDeAspas;
@@ -147,6 +147,14 @@ export default function App() {
     return str[idx];
   }
 
+  function inlineLength(str: string) {
+    return str.length;
+  }
+
+  function inlineTrim(str: string) {
+    return str.trim();
+  }
+
   const obterNecessidadesDaInstituicao = (idInst: string) => {
     return necessidades.filter(n => String(n.instituicao_id).trim() === String(idInst).trim());
   };
@@ -164,31 +172,33 @@ export default function App() {
     setToastConfig(prev => ({ ...prev, visivel: false }));
   };
 
+  // Envio de compartilhamento otimizado contra duplicações de links
   const compartilharNecessidade = (instNome: string, itemNome: string, espec: string) => {
-    const texto = `🚨 *${instNome}* precisa de ajuda!\n\nEles estão precisando urgente de: *${itemNome}* ${espec ? `(${espec})` : ''}.\n\nQuer ajudar ou ver outras necessidades deles? Acesse o site:\n👉 https://ondeajudo.com.br\n\n_Ajude a espalhar o bem compartilhando!_ ❤️`;
+    const descricaoItem = espec ? `(${espec})` : '';
+    const textoCompartilhamento = `🚨 *${instNome}* precisa de ajuda!\n\nEles estão precisando urgente de: *${itemNome}* ${descricaoItem}.\n\nQuer ajudar ou ver outras necessidades deles? Acesse o site:\n\n👉 https://ondeajudo.com.br\n\n_Ajude a espalhar o bem compartilhando!_ ❤️`;
     
     if (navigator.share) {
       navigator.share({
-        title: 'Onde Ajudo',
-        text: texto,
+        title: 'Onde Ajudo?',
+        text: `🚨 ${instNome} precisa de ajuda!\n\nEles estão precisando urgente de: ${itemNome} ${descricaoItem}.\n\nQuer ajudar ou ver outras necessidades deles? Acesse o site:\n\n👉`,
         url: 'https://ondeajudo.com.br'
       }).catch(console.error);
     } else {
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoCompartilhamento)}`, '_blank');
     }
   };
 
   const compartilharSiteGeral = () => {
-    const texto = `🌟 Conheça o *Onde Ajudo*, o aplicativo de solidariedade local!\n\nVeja as reais necessidades de asilos, orfanatos e ONGs da nossa região e combine sua doação física ou contribuição direto pelo WhatsApp das entidades.\n\n👉 Acesse e apoie: https://ondeajudo.com.br\n\nCompartilhe nos seus grupos e faça a diferença! 🤝✨`;
+    const textoCompartilhamento = `*Onde Ajudo?*, conheça o aplicativo de solidariedade local!\n\nVeja as reais necessidades das instituições da nossa região e combine sua doação física ou contribuição direto pelo WhatsApp das entidades.\n\n👉 Acesse: https://ondeajudo.com.br\n\nCompartilhe nos seus grupos e faça a diferença! 🤝✨`;
     
     if (navigator.share) {
       navigator.share({
-        title: 'Onde Ajudo',
-        text: texto,
+        title: 'Onde Ajudo?',
+        text: `Onde Ajudo?, conheça o aplicativo de solidariedade local!\n\nVeja as reais necessidades das instituições da nossa região e combine sua doação física ou contribuição direto pelo WhatsApp das entidades.\n\n👉 Acesse:`,
         url: 'https://ondeajudo.com.br'
       }).catch(console.error);
     } else {
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoCompartilhamento)}`, '_blank');
     }
   };
 
@@ -245,12 +255,12 @@ export default function App() {
   });
 
   return (
-    <div className="bg-slate-100 font-sans min-h-screen flex justify-center items-start p-0 sm:p-4 relative animate-fadeIn">
+    <div className="bg-slate-100 font-sans min-h-screen flex justify-center items-start p-0 sm:p-4 relative">
       
       {/* Simulador de Celular */}
       <div className="w-full max-w-md bg-[#F4EFE6] min-h-screen sm:min-h-[850px] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200/80 relative">
         
-        {/* HEADER - Ajustado com a marca clássica e alinhado ao topo original */}
+        {/* HEADER - Limpo e sem a legenda descritiva */}
         <header className="bg-white border-b border-[#CFA87D]/25 text-[#3E3327] px-4 py-3.5 flex items-center justify-between shadow-xs shrink-0 z-10">
           <div className="flex items-center gap-2">
             {instituicaoSelecionada ? (
@@ -274,8 +284,7 @@ export default function App() {
                   />
                 </svg>
                 <div className="flex flex-col">
-                  <h1 className="font-extrabold tracking-tight text-lg leading-none text-[#3E3327]">Onde Ajudo?</h1>
-                  <span className="text-[10px] text-slate-400 font-semibold mt-0.5">Ajuda local facilitada</span>
+                  <h1 className="font-extrabold tracking-tight text-[19px] leading-none text-[#3E3327]">Onde Ajudo?</h1>
                 </div>
               </div>
             )}
@@ -395,7 +404,7 @@ export default function App() {
 
           ) : (
             
-            /* TELA 2: DETALHES COM DESIGN LIMPO E SUAVE */
+            /* TELA 2: DETALHES COM DESIGN DE 3 COLUNAS E 2 LINHAS */
             <div className="space-y-5 animate-fadeIn">
               
               <button 
@@ -442,106 +451,101 @@ export default function App() {
                   </p>
                 )}
                 
-                {/* Painel de Botões Clean & Harmônico */}
-                <div className="space-y-2.5">
+                {/* 
+                  NOVA PROPOSTA DE TESTE:
+                  Grade Simétrica de 3 Colunas x 2 Linhas
+                  Ideal para telas menores, agrupando todas as mídias e canais em um grid compacto.
+                */}
+                <div className="grid grid-cols-3 gap-2">
                   
-                  {/* LINHA 1: Redes Sociais e Site (Tratamento opaco perfeito) */}
-                  <div className="grid grid-cols-3 gap-2">
-                    {/* Instagram */}
-                    {instituicaoSelecionada.link_instagram ? (
-                      <a href={instituicaoSelecionada.link_instagram} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 py-2.5 rounded-xl hover:bg-slate-100 transition shadow-xs text-pink-600">
-                        <i className="fa-brands fa-instagram text-base"></i>
-                        <span className="text-[10px] font-bold text-slate-700">Instagram</span>
-                      </a>
-                    ) : (
-                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
-                        <i className="fa-brands fa-instagram text-base"></i>
-                        <span className="text-[10px] font-bold">Instagram</span>
-                      </div>
-                    )}
+                  {/* Item 1: Instagram */}
+                  {instituicaoSelecionada.link_instagram ? (
+                    <a href={instituicaoSelecionada.link_instagram} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center gap-1 bg-white border border-slate-200 p-2 rounded-xl hover:bg-slate-50 transition shadow-xs text-pink-600 text-center min-h-[58px]">
+                      <i className="fa-brands fa-instagram text-base"></i>
+                      <span className="text-[10px] font-extrabold text-slate-700 leading-none">Instagram</span>
+                    </a>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-1 bg-slate-50 opacity-40 border border-slate-200/60 p-2 rounded-xl text-slate-400 text-center min-h-[58px]">
+                      <i className="fa-brands fa-instagram text-base"></i>
+                      <span className="text-[10px] font-bold leading-none">Instagram</span>
+                    </div>
+                  )}
 
-                    {/* Facebook */}
-                    {instituicaoSelecionada.link_facebook ? (
-                      <a href={instituicaoSelecionada.link_facebook} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 py-2.5 rounded-xl hover:bg-slate-100 transition shadow-xs text-blue-800">
-                        <i className="fa-brands fa-facebook text-base"></i>
-                        <span className="text-[10px] font-bold text-slate-700">Facebook</span>
-                      </a>
-                    ) : (
-                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
-                        <i className="fa-brands fa-facebook text-base"></i>
-                        <span className="text-[10px] font-bold">Facebook</span>
-                      </div>
-                    )}
+                  {/* Item 2: Facebook */}
+                  {instituicaoSelecionada.link_facebook ? (
+                    <a href={instituicaoSelecionada.link_facebook} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center gap-1 bg-white border border-slate-200 p-2 rounded-xl hover:bg-slate-50 transition shadow-xs text-blue-800 text-center min-h-[58px]">
+                      <i className="fa-brands fa-facebook text-base"></i>
+                      <span className="text-[10px] font-extrabold text-slate-700 leading-none">Facebook</span>
+                    </a>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-1 bg-slate-50 opacity-40 border border-slate-200/60 p-2 rounded-xl text-slate-400 text-center min-h-[58px]">
+                      <i className="fa-brands fa-facebook text-base"></i>
+                      <span className="text-[10px] font-bold leading-none">Facebook</span>
+                    </div>
+                  )}
 
-                    {/* Site */}
-                    {instituicaoSelecionada.link_site ? (
-                      <a href={instituicaoSelecionada.link_site} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 py-2.5 rounded-xl hover:bg-slate-100 transition shadow-xs text-blue-600">
-                        <i className="fa-solid fa-globe text-base"></i>
-                        <span className="text-[10px] font-bold text-slate-700">Website</span>
-                      </a>
-                    ) : (
-                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
-                        <i className="fa-solid fa-globe text-base"></i>
-                        <span className="text-[10px] font-bold">Website</span>
-                      </div>
-                    )}
-                  </div>
+                  {/* Item 3: Website */}
+                  {instituicaoSelecionada.link_site ? (
+                    <a href={instituicaoSelecionada.link_site} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center gap-1 bg-white border border-slate-200 p-2 rounded-xl hover:bg-slate-50 transition shadow-xs text-blue-600 text-center min-h-[58px]">
+                      <i className="fa-solid fa-globe text-base"></i>
+                      <span className="text-[10px] font-extrabold text-slate-700 leading-none">Website</span>
+                    </a>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-1 bg-slate-50 opacity-40 border border-slate-200/60 p-2 rounded-xl text-slate-400 text-center min-h-[58px]">
+                      <i className="fa-solid fa-globe text-base"></i>
+                      <span className="text-[10px] font-bold leading-none">Website</span>
+                    </div>
+                  )}
 
-                  {/* LINHA 2: Contatos (Design Suave unificado e fixo opaco quando ausente) */}
-                  <div className="grid grid-cols-2 gap-2">
-                    
-                    {/* WhatsApp */}
-                    {instituicaoSelecionada.whatsapp_contato ? (
-                      <a 
-                        href={`https://api.whatsapp.com/send?phone=55${instituicaoSelecionada.whatsapp_contato.replace(/\D/g, '')}&text=Olá! Encontrei vocês no Onde Ajudo? e gostaria de apoiar.`} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="flex items-center justify-center gap-2 bg-white border border-[#CFA87D]/30 hover:bg-[#CFA87D]/5 text-[#8C6D4C] py-2.5 rounded-xl transition shadow-xs"
-                      >
-                        <i className="fa-brands fa-whatsapp text-lg text-emerald-600"></i>
-                        <span className="text-xs font-bold">WhatsApp</span>
-                      </a>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
-                        <i className="fa-brands fa-whatsapp text-lg"></i>
-                        <span className="text-xs font-bold">WhatsApp</span>
-                      </div>
-                    )}
+                  {/* Item 4: Telefone Fixo */}
+                  {instituicaoSelecionada.telefone_fixo ? (
+                    <a 
+                      href={`tel:${instituicaoSelecionada.telefone_fixo.replace(/\D/g, '')}`} 
+                      className="flex flex-col items-center justify-center gap-1 bg-white border border-[#CFA87D]/30 hover:bg-[#CFA87D]/5 text-[#8C6D4C] p-2 rounded-xl transition shadow-xs text-center min-h-[58px]"
+                    >
+                      <i className="fa-solid fa-phone text-sm text-slate-600"></i>
+                      <span className="text-[10px] font-extrabold leading-none">Telefone</span>
+                    </a>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-1 bg-slate-50 opacity-40 border border-slate-200/60 p-2 rounded-xl text-slate-400 text-center min-h-[58px]">
+                      <i className="fa-solid fa-phone text-sm"></i>
+                      <span className="text-[10px] font-bold leading-none">Telefone</span>
+                    </div>
+                  )}
 
-                    {/* Telefone Fixo */}
-                    {instituicaoSelecionada.telefone_fixo ? (
-                      <a 
-                        href={`tel:${instituicaoSelecionada.telefone_fixo.replace(/\D/g, '')}`} 
-                        className="flex items-center justify-center gap-2 bg-white border border-[#CFA87D]/30 hover:bg-[#CFA87D]/5 text-[#8C6D4C] py-2.5 rounded-xl transition shadow-xs"
-                      >
-                        <i className="fa-solid fa-phone text-sm text-slate-600"></i>
-                        <span className="text-xs font-bold">Ligar no Fixo</span>
-                      </a>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
-                        <i className="fa-solid fa-phone text-sm"></i>
-                        <span className="text-xs font-bold">Ligar no Fixo</span>
-                      </div>
-                    )}
-                  </div>
+                  {/* Item 5: WhatsApp */}
+                  {instituicaoSelecionada.whatsapp_contato ? (
+                    <a 
+                      href={`https://api.whatsapp.com/send?phone=55${instituicaoSelecionada.whatsapp_contato.replace(/\D/g, '')}&text=Olá! Encontrei vocês no Onde Ajudo? e gostaria de apoiar.`} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="flex flex-col items-center justify-center gap-1 bg-white border border-[#CFA87D]/30 hover:bg-[#CFA87D]/5 text-[#8C6D4C] p-2 rounded-xl transition shadow-xs text-center min-h-[58px]"
+                    >
+                      <i className="fa-brands fa-whatsapp text-lg text-emerald-600"></i>
+                      <span className="text-[10px] font-extrabold leading-none">WhatsApp</span>
+                    </a>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-1 bg-slate-50 opacity-40 border border-slate-200/60 p-2 rounded-xl text-slate-400 text-center min-h-[58px]">
+                      <i className="fa-brands fa-whatsapp text-lg"></i>
+                      <span className="text-[10px] font-bold leading-none">WhatsApp</span>
+                    </div>
+                  )}
 
-                  {/* LINHA 3: Botão de PIX (Estilo Flat sem excessos) */}
-                  <div>
-                    {instituicaoSelecionada.chave_pix ? (
-                      <button 
-                        onClick={() => copiarParaClipBoard(instituicaoSelecionada.chave_pix, instituicaoSelecionada.beneficiario_pix)} 
-                        className="w-full flex items-center justify-center gap-2 bg-[#CFA87D]/10 hover:bg-[#CFA87D]/20 transition shadow-xs text-[#8C6D4C] cursor-pointer py-2.5 rounded-xl border border-[#CFA87D]/20"
-                      >
-                        <i className="fa-solid fa-copy text-sm"></i>
-                        <span className="text-xs font-bold">Copiar Chave PIX</span>
-                      </button>
-                    ) : (
-                      <div className="w-full flex items-center justify-center gap-2 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
-                        <i className="fa-solid fa-copy text-sm"></i>
-                        <span className="text-xs font-bold">Sem Chave PIX Cadastrada</span>
-                      </div>
-                    )}
-                  </div>
+                  {/* Item 6: Chave PIX */}
+                  {instituicaoSelecionada.chave_pix ? (
+                    <button 
+                      onClick={() => copiarParaClipBoard(instituicaoSelecionada.chave_pix, instituicaoSelecionada.beneficiario_pix)} 
+                      className="flex flex-col items-center justify-center gap-1 bg-[#CFA87D]/10 hover:bg-[#CFA87D]/20 transition shadow-xs text-[#8C6D4C] cursor-pointer p-2 rounded-xl border border-[#CFA87D]/20 text-center min-h-[58px]"
+                    >
+                      <i className="fa-solid fa-copy text-sm"></i>
+                      <span className="text-[10px] font-extrabold leading-none">Chave PIX</span>
+                    </button>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-1 bg-slate-50 opacity-40 border border-slate-200/60 p-2 rounded-xl text-slate-400 text-center min-h-[58px]">
+                      <i className="fa-solid fa-copy text-sm"></i>
+                      <span className="text-[10px] font-bold leading-none">Sem PIX</span>
+                    </div>
+                  )}
 
                 </div>
 
