@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 
-// Interfaces atualizadas para incluir foto, site e facebook
+// Interfaces atualizadas para incluir foto, site, facebook, telefone_fixo e cache de rede
 interface Instituicao {
   id: string;
   nome_instituicao: string;
   categoria: string;
   whatsapp_contato: string;
+  telefone_fixo?: string; 
   link_instagram: string;
-  link_facebook: string; // Coluna mapeada e ativa
+  link_facebook: string; 
   link_site?: string; 
   chave_pix: string;
   beneficiario_pix: string;
@@ -38,7 +39,13 @@ export default function App() {
   // Controle de Navegação e Busca
   const [instituicaoSelecionada, setInstituicaoSelecionada] = useState<Instituicao | null>(null);
   const [busca, setBusca] = useState('');
-  const [mostrarToast, setMostrarToast] = useState(false);
+  
+  // Controles de Notificação/Modais de Segurança do PIX
+  const [toastConfig, setToastConfig] = useState<{ visivel: boolean; mensagem: string; beneficiario?: string }>({
+    visivel: false,
+    mensagem: '',
+    beneficiario: ''
+  });
 
   const URL_INSTITUICOES = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSaWeGht1cmXAtk0D5tpJmkgGIBSqWQ4vvu-guflduOTzpXZSAvfMblOfZGmxtXA-eijzP_ZdBFWPGB/pub?gid=0&single=true&output=csv";
   const URL_NECESSIDADES = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSaWeGht1cmXAtk0D5tpJmkgGIBSqWQ4vvu-guflduOTzpXZSAvfMblOfZGmxtXA-eijzP_ZdBFWPGB/pub?gid=1406763821&single=true&output=csv";
@@ -63,16 +70,36 @@ export default function App() {
     async function carregarDados() {
       try {
         setCarregando(true);
-        const resInst = await fetch(URL_INSTITUICOES);
-        const textInst = await resInst.text();
-        const dadosInst = interpretarCSV(textInst) as Instituicao[];
 
-        const resNec = await fetch(URL_NECESSIDADES);
+        const cacheInst = sessionStorage.getItem('cache_inst');
+        const cacheNec = sessionStorage.getItem('cache_nec');
+
+        if (cacheInst && cacheNec) {
+          setInstituicoes(JSON.parse(cacheInst));
+          setNecessidades(JSON.parse(cacheNec));
+          setCarregando(false);
+          return;
+        }
+
+        const [resInst, resNec] = await Promise.all([
+          fetch(URL_INSTITUICOES),
+          fetch(URL_NECESSIDADES)
+        ]);
+
+        const textInst = await resInst.text();
         const textNec = await resNec.text();
+
+        const dadosInst = interpretarCSV(textInst) as Instituicao[];
         const dadosNec = interpretarCSV(textNec) as table_necessidade[];
 
-        setInstituicoes(dadosInst.filter(i => i.nome_instituicao && i.id));
-        setNecessidades(dadosNec.filter(n => n.item_nome && n.instituicao_id));
+        const instFiltradas = dadosInst.filter(i => i.nome_instituicao && i.id);
+        const necFiltradas = dadosNec.filter(n => n.item_nome && n.instituicao_id);
+
+        sessionStorage.setItem('cache_inst', JSON.stringify(instFiltradas));
+        sessionStorage.setItem('cache_nec', JSON.stringify(necFiltradas));
+
+        setInstituicoes(instFiltradas);
+        setNecessidades(necFiltradas);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
       } finally {
@@ -124,13 +151,47 @@ export default function App() {
     return necessidades.filter(n => String(n.instituicao_id).trim() === String(idInst).trim());
   };
 
-  const copiarParaClipBoard = (pix: string) => {
+  const copiarParaClipBoard = (pix: string, beneficiario: string) => {
     navigator.clipboard.writeText(pix);
-    setMostrarToast(true);
-    setTimeout(() => setMostrarToast(false), 2000);
+    setToastConfig({
+      visivel: true,
+      mensagem: 'Chave PIX copiada com sucesso!',
+      beneficiario: beneficiario || 'Instituição Cadastrada'
+    });
   };
 
-  // Cores adaptadas para tons pastel sutis estilo Excel
+  const fecharToast = () => {
+    setToastConfig(prev => ({ ...prev, visivel: false }));
+  };
+
+  const compartilharNecessidade = (instNome: string, itemNome: string, espec: string) => {
+    const texto = `🚨 *${instNome}* precisa de ajuda!\n\nEles estão precisando urgente de: *${itemNome}* ${espec ? `(${espec})` : ''}.\n\nQuer ajudar ou ver outras necessidades deles? Acesse o site:\n👉 https://ondeajudo.com.br\n\n_Ajude a espalhar o bem compartilhando!_ ❤️`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Onde Ajudo',
+        text: texto,
+        url: 'https://ondeajudo.com.br'
+      }).catch(console.error);
+    } else {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
+    }
+  };
+
+  const compartilharSiteGeral = () => {
+    const texto = `🌟 Conheça o *Onde Ajudo*, o aplicativo de solidariedade local!\n\nVeja as reais necessidades de asilos, orfanatos e ONGs da nossa região e combine sua doação física ou contribuição direto pelo WhatsApp das entidades.\n\n👉 Acesse e apoie: https://ondeajudo.com.br\n\nCompartilhe nos seus grupos e faça a diferença! 🤝✨`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Onde Ajudo',
+        text: texto,
+        url: 'https://ondeajudo.com.br'
+      }).catch(console.error);
+    } else {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, '_blank');
+    }
+  };
+
   const obterConfigUrgencia = (status: string) => {
     const s = status?.toLowerCase().trim();
     if (s === 'crítico' || s === 'critico') {
@@ -142,7 +203,7 @@ export default function App() {
         barBg: 'bg-[#ea9999]',
         textIcon: 'fa-circle-exclamation text-[#ea9999]',
         textoStatus: 'Estoque crítico. Necessitamos de doações urgentes.',
-        btnColor: 'bg-[#ea9999] hover:bg-[#ea9999]/90 text-white',
+        btnColor: 'bg-[#CFA87D] hover:bg-[#CFA87D]/90 text-white',
         exibirBotao: true,
         opacity: 'opacity-100'
       };
@@ -184,12 +245,12 @@ export default function App() {
   });
 
   return (
-    <div className="bg-slate-100 font-sans min-h-screen flex justify-center items-start p-0 sm:p-4 relative">
+    <div className="bg-slate-100 font-sans min-h-screen flex justify-center items-start p-0 sm:p-4 relative animate-fadeIn">
       
-      {/* Simulador de Celular - Mudado para o tom #F4EFE6 (mais escuro e marcante para os cards brancos saltarem) */}
+      {/* Simulador de Celular */}
       <div className="w-full max-w-md bg-[#F4EFE6] min-h-screen sm:min-h-[850px] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200/80 relative">
         
-        {/* HEADER - Ajustado fundo para manter constraste */}
+        {/* HEADER - Ajustado com a marca clássica e alinhado ao topo original */}
         <header className="bg-white border-b border-[#CFA87D]/25 text-[#3E3327] px-4 py-3.5 flex items-center justify-between shadow-xs shrink-0 z-10">
           <div className="flex items-center gap-2">
             {instituicaoSelecionada ? (
@@ -202,7 +263,6 @@ export default function App() {
               </button>
             ) : (
               <div className="flex items-center gap-2.5">
-                {/* Marcador com Coração Interno Ampliado em Vetor Inline */}
                 <svg viewBox="0 0 100 100" className="w-8 h-8 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
                   <path 
                     d="M50 10C30 10 12 28 12 48C12 75 50 92 50 92S88 75 88 48C88 28 70 10 50 10Z" 
@@ -213,7 +273,10 @@ export default function App() {
                     fill="#F4EFE6" 
                   />
                 </svg>
-                <h1 className="font-extrabold tracking-tight text-lg text-[#3E3327]">Onde Ajudo?</h1>
+                <div className="flex flex-col">
+                  <h1 className="font-extrabold tracking-tight text-lg leading-none text-[#3E3327]">Onde Ajudo?</h1>
+                  <span className="text-[10px] text-slate-400 font-semibold mt-0.5">Ajuda local facilitada</span>
+                </div>
               </div>
             )}
           </div>
@@ -235,7 +298,6 @@ export default function App() {
             /* TELA 1: LISTAGEM */
             <div className="space-y-4 animate-fadeIn">
               
-              {/* Barra de Busca Re-estilizada */}
               <div className="relative">
                 <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                 <input 
@@ -253,7 +315,6 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Lista de Cards Brancos se destacando sobre o Bege sutil */}
               <div className="space-y-3.5">
                 {instituicoesFiltradas.length > 0 ? (
                   instituicoesFiltradas.map((inst) => {
@@ -315,16 +376,31 @@ export default function App() {
                 )}
               </div>
 
+              {/* Banner de Incentivo a Compartilhamento do Site */}
+              <div className="bg-[#CFA87D]/10 border border-[#CFA87D]/20 rounded-2xl p-4 text-center mt-6">
+                <span className="text-xl mb-1 block">🌟</span>
+                <h4 className="text-xs font-bold text-[#3E3327] mb-1">Gostou da nossa iniciativa?</h4>
+                <p className="text-[11px] text-slate-600 mb-3 leading-relaxed">
+                  Ajude a fortalecer o bem em nossa região divulgando o app para seus amigos e familiares!
+                </p>
+                <button
+                  onClick={compartilharSiteGeral}
+                  className="bg-[#CFA87D] hover:bg-[#CFA87D]/90 text-white text-xs font-bold py-2 px-4 rounded-xl transition inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <i className="fa-brands fa-whatsapp text-sm"></i> Compartilhar Onde Ajudo?
+                </button>
+              </div>
+
             </div>
 
           ) : (
             
-            /* TELA 2: DETALHES AVANÇADOS */
+            /* TELA 2: DETALHES COM DESIGN LIMPO E SUAVE */
             <div className="space-y-5 animate-fadeIn">
               
               <button 
                 onClick={() => setInstituicaoSelecionada(null)}
-                className="bg-white border border-[#CFA87D]/20 text-[#3E3327] px-3.5 py-2 rounded-full text-xs font-bold shadow-xs hover:bg-slate-50 transition flex items-center gap-1.5 cursor-pointer"
+                className="bg-white border border-[#CFA87D]/25 text-[#3E3327] px-3.5 py-2 rounded-full text-xs font-bold shadow-xs hover:bg-slate-50 transition flex items-center gap-1.5 cursor-pointer"
               >
                 <i className="fa-solid fa-arrow-left"></i> Voltar para Lista
               </button>
@@ -341,11 +417,11 @@ export default function App() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <span className="bg-[#CFA87D]/10 text-[#8C6D4C] text-[10px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">
                       {instituicaoSelecionada.categoria}
                     </span>
-                    <h2 className="text-xl font-extrabold text-[#3E3327] leading-tight mt-1">{instituicaoSelecionada.nome_instituicao}</h2>
+                    <h2 className="text-lg font-extrabold text-[#3E3327] leading-tight mt-1 truncate">{instituicaoSelecionada.nome_instituicao}</h2>
                     <p className="text-xs font-bold text-[#CFA87D] mt-1">
                       <i className="fa-solid fa-map-pin mr-1"></i>Bairro: {instituicaoSelecionada.bairro}
                     </p>
@@ -366,10 +442,10 @@ export default function App() {
                   </p>
                 )}
                 
-                {/* Painel de Botões */}
+                {/* Painel de Botões Clean & Harmônico */}
                 <div className="space-y-2.5">
                   
-                  {/* LINHA 1: Redes Sociais e Site */}
+                  {/* LINHA 1: Redes Sociais e Site (Tratamento opaco perfeito) */}
                   <div className="grid grid-cols-3 gap-2">
                     {/* Instagram */}
                     {instituicaoSelecionada.link_instagram ? (
@@ -378,7 +454,7 @@ export default function App() {
                         <span className="text-[10px] font-bold text-slate-700">Instagram</span>
                       </a>
                     ) : (
-                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-100 py-2.5 rounded-xl text-slate-400">
+                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
                         <i className="fa-brands fa-instagram text-base"></i>
                         <span className="text-[10px] font-bold">Instagram</span>
                       </div>
@@ -391,7 +467,7 @@ export default function App() {
                         <span className="text-[10px] font-bold text-slate-700">Facebook</span>
                       </a>
                     ) : (
-                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-100 py-2.5 rounded-xl text-slate-400">
+                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
                         <i className="fa-brands fa-facebook text-base"></i>
                         <span className="text-[10px] font-bold">Facebook</span>
                       </div>
@@ -404,39 +480,65 @@ export default function App() {
                         <span className="text-[10px] font-bold text-slate-700">Website</span>
                       </a>
                     ) : (
-                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-100 py-2.5 rounded-xl text-slate-400">
+                      <div className="flex items-center justify-center gap-1.5 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
                         <i className="fa-solid fa-globe text-base"></i>
                         <span className="text-[10px] font-bold">Website</span>
                       </div>
                     )}
                   </div>
 
-                  {/* LINHA 2: Contato e PIX */}
+                  {/* LINHA 2: Contatos (Design Suave unificado e fixo opaco quando ausente) */}
                   <div className="grid grid-cols-2 gap-2">
+                    
                     {/* WhatsApp */}
-                    <a 
-                      href={`https://api.whatsapp.com/send?phone=55${instituicaoSelecionada.whatsapp_contato.replace(/\D/g, '')}&text=Olá! Gostaria de ajudar a instituição.`} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="flex items-center justify-center gap-2 bg-[#CFA87D] hover:bg-[#CFA87D]/90 text-white py-3 rounded-xl transition shadow-xs"
-                    >
-                      <i className="fa-brands fa-whatsapp text-lg"></i>
-                      <span className="text-xs font-bold">Chamar no Whats</span>
-                    </a>
+                    {instituicaoSelecionada.whatsapp_contato ? (
+                      <a 
+                        href={`https://api.whatsapp.com/send?phone=55${instituicaoSelecionada.whatsapp_contato.replace(/\D/g, '')}&text=Olá! Encontrei vocês no Onde Ajudo? e gostaria de apoiar.`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="flex items-center justify-center gap-2 bg-white border border-[#CFA87D]/30 hover:bg-[#CFA87D]/5 text-[#8C6D4C] py-2.5 rounded-xl transition shadow-xs"
+                      >
+                        <i className="fa-brands fa-whatsapp text-lg text-emerald-600"></i>
+                        <span className="text-xs font-bold">WhatsApp</span>
+                      </a>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
+                        <i className="fa-brands fa-whatsapp text-lg"></i>
+                        <span className="text-xs font-bold">WhatsApp</span>
+                      </div>
+                    )}
 
-                    {/* PIX */}
+                    {/* Telefone Fixo */}
+                    {instituicaoSelecionada.telefone_fixo ? (
+                      <a 
+                        href={`tel:${instituicaoSelecionada.telefone_fixo.replace(/\D/g, '')}`} 
+                        className="flex items-center justify-center gap-2 bg-white border border-[#CFA87D]/30 hover:bg-[#CFA87D]/5 text-[#8C6D4C] py-2.5 rounded-xl transition shadow-xs"
+                      >
+                        <i className="fa-solid fa-phone text-sm text-slate-600"></i>
+                        <span className="text-xs font-bold">Ligar no Fixo</span>
+                      </a>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
+                        <i className="fa-solid fa-phone text-sm"></i>
+                        <span className="text-xs font-bold">Ligar no Fixo</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* LINHA 3: Botão de PIX (Estilo Flat sem excessos) */}
+                  <div>
                     {instituicaoSelecionada.chave_pix ? (
                       <button 
-                        onClick={() => copiarParaClipBoard(instituicaoSelecionada.chave_pix)} 
-                        className="flex items-center justify-center gap-2 bg-[#CFA87D]/10 border border-[#CFA87D]/25 hover:bg-[#CFA87D]/20 transition shadow-xs text-[#8C6D4C] cursor-pointer py-3 rounded-xl"
+                        onClick={() => copiarParaClipBoard(instituicaoSelecionada.chave_pix, instituicaoSelecionada.beneficiario_pix)} 
+                        className="w-full flex items-center justify-center gap-2 bg-[#CFA87D]/10 hover:bg-[#CFA87D]/20 transition shadow-xs text-[#8C6D4C] cursor-pointer py-2.5 rounded-xl border border-[#CFA87D]/20"
                       >
                         <i className="fa-solid fa-copy text-sm"></i>
-                        <span className="text-xs font-bold">Copiar PIX</span>
+                        <span className="text-xs font-bold">Copiar Chave PIX</span>
                       </button>
                     ) : (
-                      <div className="flex items-center justify-center gap-2 bg-slate-50 opacity-40 border border-slate-100 py-3 rounded-xl text-slate-400">
+                      <div className="w-full flex items-center justify-center gap-2 bg-slate-50 opacity-40 border border-slate-200/60 py-2.5 rounded-xl text-slate-400">
                         <i className="fa-solid fa-copy text-sm"></i>
-                        <span className="text-xs font-bold">Sem PIX</span>
+                        <span className="text-xs font-bold">Sem Chave PIX Cadastrada</span>
                       </div>
                     )}
                   </div>
@@ -445,7 +547,7 @@ export default function App() {
 
               </div>
 
-              {/* Termômetros */}
+              {/* Termômetros de Necessidades */}
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#8C6D4C] mb-3 flex items-center gap-1.5">
                   <i className="fa-solid fa-list-check text-[#CFA87D]"></i> Termômetro de Necessidades
@@ -455,7 +557,11 @@ export default function App() {
                   {obterNecessidadesDaInstituicao(instituicaoSelecionada.id).length > 0 ? (
                     obterNecessidadesDaInstituicao(instituicaoSelecionada.id).map((nec) => {
                       const config = obterConfigUrgencia(nec.status_urgencia);
-                      const linkDoacaoWhats = `https://api.whatsapp.com/send?phone=55${instituicaoSelecionada.whatsapp_contato.replace(/\D/g, '')}&text=Olá! Quero ajudar a doar o item: *${nec.item_nome}* (${nec.especificacoes || 'Sem especificações'})`;
+                      
+                      const temWhats = instituicaoSelecionada.whatsapp_contato && instituicaoSelecionada.whatsapp_contato.trim() !== "";
+                      const linkAcaoDoar = temWhats
+                        ? `https://api.whatsapp.com/send?phone=55${instituicaoSelecionada.whatsapp_contato.replace(/\D/g, '')}&text=Olá! Vi no Onde Ajudo? e quero ajudar a doar o item: *${nec.item_nome}* (${nec.especificacoes || 'Sem especificações'})`
+                        : (instituicaoSelecionada.telefone_fixo ? `tel:${instituicaoSelecionada.telefone_fixo.replace(/\D/g, '')}` : '#');
                       
                       return (
                         <div key={nec.id} className={`bg-white border-l-4 ${config.border} rounded-xl p-3.5 shadow-xs border border-slate-100 ${config.opacity}`}>
@@ -476,14 +582,34 @@ export default function App() {
                           </p>
 
                           {config.exibirBotao && (
-                            <a 
-                              href={linkDoacaoWhats}
-                              target="_blank"
-                              rel="noreferrer"
-                              className={`block text-center w-full ${config.btnColor} font-bold py-2.5 rounded-lg text-xs transition shadow-xs cursor-pointer`}
-                            >
-                              Quero Doar Este Item
-                            </a>
+                            <div className="grid grid-cols-5 gap-2">
+                              <a 
+                                href={linkAcaoDoar}
+                                target={temWhats ? "_blank" : undefined}
+                                rel={temWhats ? "noreferrer" : undefined}
+                                className="col-span-4 text-center bg-[#ffe599] hover:bg-[#ffe599]/90 text-[#614B15] font-bold py-2.5 rounded-lg text-xs transition shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                              >
+                                {temWhats ? (
+                                  <>
+                                    <i className="fa-brands fa-whatsapp text-sm"></i>
+                                    <span>Quero Doar Este Item</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <i className="fa-solid fa-phone text-xs"></i>
+                                    <span>Ligar para Doar</span>
+                                  </>
+                                )}
+                              </a>
+
+                              <button
+                                onClick={() => compartilharNecessidade(instituicaoSelecionada.nome_instituicao, nec.item_nome, nec.especificacoes)}
+                                className="col-span-1 bg-slate-100 hover:bg-slate-200 border border-slate-200/80 text-slate-500 rounded-lg flex items-center justify-center cursor-pointer transition shadow-xs"
+                                title="Compartilhar Necessidade"
+                              >
+                                <i className="fa-solid fa-share-nodes text-xs"></i>
+                              </button>
+                            </div>
                           )}
                         </div>
                       );
@@ -496,7 +622,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Endereço / GPS - Corrigido para "p-5" (garante a margem e padding interno correto) */}
+              {/* Endereço / GPS */}
               <div className="bg-[#3E3327] text-[#FDFBF7] rounded-2xl p-5 shadow-md space-y-4">
                 <div className="flex items-center gap-2 text-[#CFA87D] font-bold text-sm">
                   <i className="fa-solid fa-truck-ramp-box"></i>
@@ -506,8 +632,9 @@ export default function App() {
                   <p><strong className="text-white">Endereço:</strong> {instituicaoSelecionada.endereco_completo} - {instituicaoSelecionada.bairro}</p>
                   <p><strong className="text-white">Cidade:</strong> {instituicaoSelecionada.cidade} - {instituicaoSelecionada.estado}</p>
                 </div>
+                
                 <a 
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(instituicaoSelecionada.nome_instituicao + ', ' + instituicaoSelecionada.endereco_completo)}`}
+                  href={`https://maps.google.com/?q=${encodeURIComponent(instituicaoSelecionada.nome_instituicao + ', ' + instituicaoSelecionada.endereco_completo)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="w-full bg-[#524435] hover:bg-[#524435]/80 border border-[#CFA87D]/35 text-[#FDFBF7] font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer mt-1"
@@ -520,10 +647,36 @@ export default function App() {
           )}
         </main>
 
-        {/* TOAST DE CONFIRMAÇÃO DE PIX */}
-        {mostrarToast && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold py-3 px-6 rounded-2xl shadow-xl flex items-center gap-2 border border-slate-800 animate-bounce transition-all duration-300 z-50">
-            <span className="text-[#CFA87D] text-sm">❤️</span> Chave PIX copiada com sucesso!
+        {/* FOOTER */}
+        <footer className="bg-[#3E3327] border-t border-[#524435] px-4 py-3 text-center shrink-0">
+          <p className="text-[10px] text-slate-400 font-medium">
+            Desenvolvido com ❤️ para nossa região | <span className="text-[#CFA87D]">ondeajudo.com.br</span>
+          </p>
+        </footer>
+
+        {/* TOAST DO PIX */}
+        {toastConfig.visivel && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-6 z-50 animate-fadeIn">
+            <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-2xl text-center border border-slate-100">
+              <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
+                📋
+              </div>
+              <h3 className="text-sm font-bold text-[#3E3327] mb-1">Chave Copiada!</h3>
+              <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                A chave PIX foi copiada. Ao colar no app do seu banco, confirme se o beneficiário é:
+              </p>
+              <div className="bg-[#F4EFE6] border border-[#CFA87D]/30 rounded-xl p-3 mb-4">
+                <span className="text-xs font-bold text-[#3E3327] block break-words">
+                  {toastConfig.beneficiario}
+                </span>
+              </div>
+              <button 
+                onClick={fecharToast}
+                className="w-full bg-[#CFA87D] hover:bg-[#CFA87D]/90 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer"
+              >
+                Entendi e vou Confirmar
+              </button>
+            </div>
           </div>
         )}
 
