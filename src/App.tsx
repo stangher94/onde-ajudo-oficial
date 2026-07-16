@@ -189,12 +189,12 @@ export default function App() {
   };
 
   const compartilharSiteGeral = () => {
-    const textoCompartilhamento = `*Onde Ajudo?*, conheça o aplicativo de solidariedade local!\n\nVeja as reais necessidades das instituições da nossa região e combine sua doação física ou contribuição direto pelo WhatsApp das entidades.\n\n👉 Acesse: https://ondeajudo.com.br\n\nCompartilhe nos seus grupos e faça a diferença! 🤝✨`;
+    const textoCompartilhamento = `*Onde Ajudo?*, conheça o aplicativo de solidariedade local!\n\nVeja as reais necessidades das instituições da nossa região e combine sua doação física, contribuição por pix ou fale direto com elas no WhatsApp.\n\n👉 Acesse: https://ondeajudo.com.br\n\nCompartilhe nos seus grupos e faça a diferença! 🤝✨`;
     
     if (navigator.share) {
       navigator.share({
         title: 'Onde Ajudo?',
-        text: `Onde Ajudo?, conheça o aplicativo de solidariedade local!\n\nVeja as reais necessidades das instituições da nossa região e combine sua doação física ou contribuição direto pelo WhatsApp das entidades.\n\n👉 Acesse:`,
+        text: `*Onde Ajudo?*, conheça o aplicativo de solidariedade local!\n\nVeja as reais necessidades das instituições da nossa região e combine sua doação física, contribuição por pix ou fale direto com elas no WhatsApp.\n\n👉 Acesse:`,
         url: 'https://ondeajudo.com.br'
       }).catch(console.error);
     } else {
