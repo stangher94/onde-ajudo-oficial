@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ondeajudo.com.br/sitemap.xml
