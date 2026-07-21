@@ -290,41 +290,39 @@ export default function App() {
             className="w-full h-full min-h-screen flex flex-col justify-between items-center p-6 text-center select-none"
           >
             
-            {/* Espaçador superior e Container do Logo Centralizado */}
-            <div className="w-full flex-1 flex items-center justify-center pt-12">
-              <div className="flex items-center justify-center w-full">
-                <svg 
-                  width="180" 
-                  height="180" 
-                  viewBox="0 0 40 40" 
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  {/* Pino Arredondado */}
+            {/* Logo + Título centralizados juntos no bloco superior */}
+            <div className="w-full flex-1 flex flex-col items-center justify-center pt-12">
+              <svg 
+                width="180" 
+                height="180" 
+                viewBox="0 0 40 40" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Pino Arredondado */}
+                <path 
+                  d="M20 3C13.37 3 8 8.37 8 15c0 9 12 21 12 21s12-12 12-21c0-6.63-5.37-12-12-12z" 
+                  fill="#ceaa82" 
+                />
+                
+                {/* Coração Interno Ajustado e Proporcional */}
+                <g transform="translate(7.2, 7.5) scale(0.64)" className="animate-heart-beat">
                   <path 
-                    d="M20 3C13.37 3 8 8.37 8 15c0 9 12 21 12 21s12-12 12-21c0-6.63-5.37-12-12-12z" 
-                    fill="#ceaa82" 
+                    d="M20 19.35l-1.16-1.05C14.72 14.6 12 12.14 12 9.11c0-2.46 1.94-4.39 4.4-4.39 1.39 0 2.73.65 3.6 1.67.87-1.02 2.21-1.67 3.6-1.67 2.46 0 4.4 1.93 4.4 4.39 0 3.03-2.72 5.49-6.84 9.2L20 19.35z" 
+                    fill="#faf5f0" 
                   />
-                  
-                  {/* Coração Interno Ajustado e Proporcional */}
-                  <g transform="translate(7.2, 7.5) scale(0.64)" className="animate-heart-beat">
-                    <path 
-                      d="M20 19.35l-1.16-1.05C14.72 14.6 12 12.14 12 9.11c0-2.46 1.94-4.39 4.4-4.39 1.39 0 2.73.65 3.6 1.67.87-1.02 2.21-1.67 3.6-1.67 2.46 0 4.4 1.93 4.4 4.39 0 3.03-2.72 5.49-6.84 9.2L20 19.35z" 
-                      fill="#faf5f0" 
-                    />
-                  </g>
-                </svg>
-              </div>
-            </div>
+                </g>
+              </svg>
 
-            {/* Bloco de Textos Empurrado para a Parte Inferior */}
-            <div style={{ width: '100%', textAlign: 'center' }} className="flex flex-col items-center justify-center pb-10">
               <h1 
                 style={{ color: '#ceaa82', fontFamily: 'system-ui, -apple-system, sans-serif' }} 
-                className="font-black text-4xl tracking-tight leading-none text-center"
+                className="font-black text-4xl tracking-tight leading-none text-center mt-5"
               >
                 Onde Ajudo?
               </h1>
-                          
+            </div>
+
+            {/* Subtítulo fixado sozinho na parte inferior */}
+            <div style={{ width: '100%', textAlign: 'center' }} className="flex flex-col items-center justify-center pb-10">
               <p 
                 style={{ color: '#8C6D4C', fontFamily: 'system-ui, -apple-system, sans-serif' }} 
                 className="font-medium text-xs tracking-wide animate-pulse text-center"
