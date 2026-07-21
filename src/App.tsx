@@ -60,16 +60,19 @@ export default function App() {
     linkFontAwesome.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css";
     document.head.appendChild(linkFontAwesome);
 
-    // Injeção de estilo de animação de pulso do coração
+    // Animação CSS para pulsação orgânica do coração
     const styleAnimation = document.createElement('style');
     styleAnimation.innerHTML = `
       @keyframes heartPulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.15); opacity: 0.85; }
+        0%, 100% { transform: translate(4.1px, 6px) scale(0.8); }
+        50% { transform: translate(4.1px, 6px) scale(0.92); }
       }
       .animate-heart-beat {
         animation: heartPulse 1.2s infinite ease-in-out;
-        transform-origin: center;
+        transform-origin: 20px 12px;
+      }
+      .font-logo {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       }
     `;
     document.head.appendChild(styleAnimation);
@@ -227,7 +230,7 @@ export default function App() {
         barBg: 'bg-[#ea9999]',
         textIcon: 'fa-circle-exclamation text-[#ea9999]',
         textoStatus: 'Estoque crítico. Necessitamos de doações urgentes.',
-        btnColor: 'bg-[#CFA87D] hover:bg-[#CFA87D]/90 text-white',
+        btnColor: 'bg-[#ceaa82] hover:bg-[#ceaa82]/90 text-white',
         exibirBotao: true,
         opacity: 'opacity-100'
       };
@@ -272,65 +275,63 @@ export default function App() {
     <div className="bg-slate-100 font-sans min-h-screen flex justify-center items-start p-0 sm:p-4 relative">
       
       {/* Simulador de Celular */}
-      <div className="w-full max-w-md bg-[#F4EFE6] min-h-screen sm:min-h-[850px] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200/80 relative">
+      <div className="w-full max-w-md bg-[#faf5f0] min-h-screen sm:min-h-[850px] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200/80 relative">
         
-        {/* TELA DE CARREGAMENTO HARMONIOSA COM CORAÇÃO PULSANTE */}
+        {/* TELA DE CARREGAMENTO CENTRALIZADA COM O LOGO OFICIAL SVG */}
         {carregando ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-6 bg-[#F4EFE6] text-center select-none animate-fadeIn">
-            {/* Logo do Pino com Coração Pulsante Integrado */}
-            <div className="w-24 h-24 mb-6 relative flex items-center justify-center">
-              <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
-                {/* Pino Fixo */}
-                <path 
-                  d="M50 10C30 10 12 28 12 48C12 75 50 92 50 92S88 75 88 48C88 28 70 10 50 10Z" 
-                  fill="#CFA87D" 
-                />
-                {/* Coração Interno com Animação de Pulsar */}
-                <path 
-                  className="animate-heart-beat"
-                  d="M50 58C49 58 48 57.6 47.2 56.8L38 47.6C34 43.6 34 37 38 33C42 29 48 31 50 31C52 31 58 29 62 33C66 37 66 43.6 62 47.6L52.8 56.8C52 57.6 51 58 50 58Z" 
-                  fill="#F4EFE6" 
-                />
+          <div className="flex-1 flex flex-col items-center justify-center p-6 bg-[#faf5f0] text-center select-none animate-fadeIn">
+            
+            {/* Ícone do Pin com Proporções Féis ao SVG Fornecido */}
+            <div className="w-28 h-28 mb-4 relative flex items-center justify-center">
+              <svg viewBox="0 0 40 40" className="w-full h-full drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
+                {/* Pin do Logo Original */}
+                <path d="M20 3C13.37 3 8 8.37 8 15c0 9 12 21 12 21s12-12 12-21c0-6.63-5.37-12-12-12z" fill="#ceaa82" />
+                
+                {/* Coração Animado em Pulsação */}
+                <g className="animate-heart-beat">
+                  <path d="M20 19.35l-1.16-1.05C14.72 14.6 12 12.14 12 9.11c0-2.46 1.94-4.39 4.4-4.39 1.39 0 2.73.65 3.6 1.67.87-1.02 2.21-1.67 3.6-1.67 2.46 0 4.4 1.93 4.4 4.39 0 3.03-2.72 5.49-6.84 9.2L20 19.35z" fill="#faf5f0" />
+                </g>
               </svg>
             </div>
 
-            <h1 className="font-extrabold text-2xl tracking-tight text-[#3E3327] mb-2">Onde Ajudo?</h1>
-            <p className="text-xs font-semibold text-[#8C6D4C] tracking-wide animate-pulse">
+            {/* Texto com Tipografia Idêntica ao Logo */}
+            <h1 className="font-logo font-black text-3xl tracking-tighter text-[#ceaa82] mb-2 leading-none">
+              Onde Ajudo?
+            </h1>
+            
+            <p className="font-logo font-semibold text-xs text-[#8C6D4C] tracking-wide animate-pulse mt-1">
               Carregando informações...
             </p>
+
           </div>
         ) : (
           <>
             {/* HEADER */}
-            <header className="bg-white border-b border-[#CFA87D]/25 text-[#3E3327] px-4 py-3.5 flex items-center justify-between shadow-xs shrink-0 z-10">
+            <header className="bg-white border-b border-[#ceaa82]/25 text-[#3E3327] px-4 py-3.5 flex items-center justify-between shadow-xs shrink-0 z-10">
               <div className="flex items-center gap-2">
                 {instituicaoSelecionada ? (
                   <button 
                     onClick={() => setInstituicaoSelecionada(null)}
-                    className="mr-2 text-[#3E3327] hover:text-[#CFA87D] transition text-sm font-bold cursor-pointer flex items-center gap-1.5"
+                    className="mr-2 text-[#3E3327] hover:text-[#ceaa82] transition text-sm font-bold cursor-pointer flex items-center gap-1.5"
                   >
                     <i className="fa-solid fa-chevron-left text-xs"></i>
                     <span>Voltar</span>
                   </button>
                 ) : (
                   <div className="flex items-center gap-2.5">
-                    <svg viewBox="0 0 100 100" className="w-8 h-8 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
-                      <path 
-                        d="M50 10C30 10 12 28 12 48C12 75 50 92 50 92S88 75 88 48C88 28 70 10 50 10Z" 
-                        fill="#CFA87D" 
-                      />
-                      <path 
-                        d="M50 58C49 58 48 57.6 47.2 56.8L38 47.6C34 43.6 34 37 38 33C42 29 48 31 50 31C52 31 58 29 62 33C66 37 66 43.6 62 47.6L52.8 56.8C52 57.6 51 58 50 58Z" 
-                        fill="#F4EFE6" 
-                      />
+                    <svg viewBox="0 0 40 40" className="w-8 h-8 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20 3C13.37 3 8 8.37 8 15c0 9 12 21 12 21s12-12 12-21c0-6.63-5.37-12-12-12z" fill="#ceaa82" />
+                      <g transform="translate(4.1, 6) scale(0.8)">
+                        <path d="M20 19.35l-1.16-1.05C14.72 14.6 12 12.14 12 9.11c0-2.46 1.94-4.39 4.4-4.39 1.39 0 2.73.65 3.6 1.67.87-1.02 2.21-1.67 3.6-1.67 2.46 0 4.4 1.93 4.4 4.39 0 3.03-2.72 5.49-6.84 9.2L20 19.35z" fill="#faf5f0" />
+                      </g>
                     </svg>
                     <div className="flex flex-col">
-                      <h1 className="font-extrabold tracking-tight text-[19px] leading-none text-[#3E3327]">Onde Ajudo?</h1>
+                      <h1 className="font-logo font-black tracking-tighter text-[20px] leading-none text-[#ceaa82]">Onde Ajudo?</h1>
                     </div>
                   </div>
                 )}
               </div>
-              <span className="bg-[#CFA87D]/15 text-[#8C6D4C] text-xs px-3 py-1 rounded-full font-bold">
+              <span className="bg-[#ceaa82]/15 text-[#8C6D4C] text-xs px-3 py-1 rounded-full font-bold">
                 <i className="fa-solid fa-location-dot mr-1"></i>
                 {instituicoes[0] ? `${instituicoes[0].cidade} - ${instituicoes[0].estado}` : 'SP'}
               </span>
@@ -350,7 +351,7 @@ export default function App() {
                       placeholder="Buscar por nome, bairro ou categoria..."
                       value={busca}
                       onChange={(e) => setBusca(e.target.value)}
-                      className="w-full bg-white border border-[#CFA87D]/20 rounded-xl py-2.5 pl-10 pr-4 text-sm text-[#3E3327] focus:outline-none focus:ring-2 focus:ring-[#CFA87D]/40 focus:border-[#CFA87D] transition shadow-xs"
+                      className="w-full bg-white border border-[#ceaa82]/20 rounded-xl py-2.5 pl-10 pr-4 text-sm text-[#3E3327] focus:outline-none focus:ring-2 focus:ring-[#ceaa82]/40 focus:border-[#ceaa82] transition shadow-xs"
                     />
                   </div>
 
@@ -372,7 +373,7 @@ export default function App() {
                           <div 
                             key={inst.id}
                             onClick={() => setInstituicaoSelecionada(inst)}
-                            className="bg-white rounded-2xl p-3.5 border border-[#CFA87D]/10 hover:border-[#CFA87D]/40 shadow-xs flex gap-3.5 items-center cursor-pointer hover:shadow-md transition-all duration-200 active:scale-[0.99]"
+                            className="bg-white rounded-2xl p-3.5 border border-[#ceaa82]/10 hover:border-[#ceaa82]/40 shadow-xs flex gap-3.5 items-center cursor-pointer hover:shadow-md transition-all duration-200 active:scale-[0.99]"
                           >
                             <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-100">
                               <img 
@@ -386,18 +387,18 @@ export default function App() {
                             </div>
 
                             <div className="flex-1 min-w-0 py-0.5">
-                              <span className="inline-block bg-[#CFA87D]/10 text-[#8C6D4C] text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider mb-1.5">
+                              <span className="inline-block bg-[#ceaa82]/10 text-[#8C6D4C] text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider mb-1.5">
                                 {inst.categoria}
                               </span>
                               <h3 className="text-[15px] font-bold text-[#3E3327] leading-snug truncate">
                                 {inst.nome_instituicao}
                               </h3>
                               <p className="text-xs text-slate-500 mt-1">
-                                <i className="fa-solid fa-map-pin mr-1 text-[#CFA87D]"></i> Bairro: {inst.bairro}
+                                <i className="fa-solid fa-map-pin mr-1 text-[#ceaa82]"></i> Bairro: {inst.bairro}
                               </p>
                               
                               <div className="flex items-center justify-between mt-2.5">
-                                <span className="text-[11px] font-bold text-[#CFA87D]">
+                                <span className="text-[11px] font-bold text-[#ceaa82]">
                                   <i className="fa-solid fa-circle-info mr-1"></i> Ver detalhes
                                 </span>
                                 {totalNec > 0 && (
@@ -409,7 +410,7 @@ export default function App() {
                             </div>
 
                             <div className="text-slate-300 pr-1">
-                              <i className="fa-solid fa-chevron-right text-sm text-[#CFA87D]/60"></i>
+                              <i className="fa-solid fa-chevron-right text-sm text-[#ceaa82]/60"></i>
                             </div>
                           </div>
                         );
@@ -422,7 +423,7 @@ export default function App() {
                   </div>
 
                   {/* Banner de Incentivo a Compartilhamento do Site */}
-                  <div className="bg-[#CFA87D]/10 border border-[#CFA87D]/20 rounded-2xl p-4 text-center mt-6">
+                  <div className="bg-[#ceaa82]/10 border border-[#ceaa82]/20 rounded-2xl p-4 text-center mt-6">
                     <span className="text-xl mb-1 block">🌟</span>
                     <h4 className="text-xs font-bold text-[#3E3327] mb-1">Gostou da nossa iniciativa?</h4>
                     <p className="text-[11px] text-slate-600 mb-3 leading-relaxed">
@@ -430,7 +431,7 @@ export default function App() {
                     </p>
                     <button
                       onClick={compartilharSiteGeral}
-                      className="bg-[#CFA87D] hover:bg-[#CFA87D]/90 text-white text-xs font-bold py-2 px-4 rounded-xl transition inline-flex items-center gap-2 cursor-pointer"
+                      className="bg-[#ceaa82] hover:bg-[#ceaa82]/90 text-white text-xs font-bold py-2 px-4 rounded-xl transition inline-flex items-center gap-2 cursor-pointer"
                     >
                       <i className="fa-brands fa-whatsapp text-sm"></i> Compartilhar Onde Ajudo?
                     </button>
@@ -445,12 +446,12 @@ export default function App() {
                   
                   <button 
                     onClick={() => setInstituicaoSelecionada(null)}
-                    className="bg-white border border-[#CFA87D]/25 text-[#3E3327] px-3.5 py-2 rounded-full text-xs font-bold shadow-xs hover:bg-slate-50 transition flex items-center gap-1.5 cursor-pointer"
+                    className="bg-white border border-[#ceaa82]/25 text-[#3E3327] px-3.5 py-2 rounded-full text-xs font-bold shadow-xs hover:bg-slate-50 transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <i className="fa-solid fa-arrow-left"></i> Voltar para Lista
                   </button>
 
-                  <div className="bg-white rounded-2xl p-4 border border-[#CFA87D]/10 shadow-sm">
+                  <div className="bg-white rounded-2xl p-4 border border-[#ceaa82]/10 shadow-sm">
                     
                     <div className="flex gap-4 items-start mb-4">
                       <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-slate-100">
@@ -463,11 +464,11 @@ export default function App() {
                         />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <span className="bg-[#CFA87D]/10 text-[#8C6D4C] text-[10px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">
+                        <span className="bg-[#ceaa82]/10 text-[#8C6D4C] text-[10px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">
                           {instituicaoSelecionada.categoria}
                         </span>
                         <h2 className="text-lg font-extrabold text-[#3E3327] leading-tight mt-1 truncate">{instituicaoSelecionada.nome_instituicao}</h2>
-                        <p className="text-xs font-bold text-[#CFA87D] mt-1">
+                        <p className="text-xs font-bold text-[#ceaa82] mt-1">
                           <i className="fa-solid fa-map-pin mr-1"></i>Bairro: {instituicaoSelecionada.bairro}
                         </p>
                       </div>
@@ -533,7 +534,7 @@ export default function App() {
                       {instituicaoSelecionada.telefone_fixo ? (
                         <a 
                           href={`tel:${instituicaoSelecionada.telefone_fixo.replace(/\D/g, '')}`} 
-                          className="flex flex-col items-center justify-center gap-1 bg-white border border-[#CFA87D]/30 hover:bg-[#CFA87D]/5 text-[#8C6D4C] p-2 rounded-xl transition shadow-xs text-center min-h-[58px]"
+                          className="flex flex-col items-center justify-center gap-1 bg-white border border-[#ceaa82]/30 hover:bg-[#ceaa82]/5 text-[#8C6D4C] p-2 rounded-xl transition shadow-xs text-center min-h-[58px]"
                         >
                           <i className="fa-solid fa-phone text-sm text-slate-600"></i>
                           <span className="text-[10px] font-extrabold leading-none">Telefone</span>
@@ -551,7 +552,7 @@ export default function App() {
                           href={`https://api.whatsapp.com/send?phone=55${instituicaoSelecionada.whatsapp_contato.replace(/\D/g, '')}&text=Olá! Encontrei vocês no Onde Ajudo? e gostaria de apoiar.`} 
                           target="_blank" 
                           rel="noreferrer" 
-                          className="flex flex-col items-center justify-center gap-1 bg-white border border-[#CFA87D]/30 hover:bg-[#CFA87D]/5 text-[#8C6D4C] p-2 rounded-xl transition shadow-xs text-center min-h-[58px]"
+                          className="flex flex-col items-center justify-center gap-1 bg-white border border-[#ceaa82]/30 hover:bg-[#ceaa82]/5 text-[#8C6D4C] p-2 rounded-xl transition shadow-xs text-center min-h-[58px]"
                         >
                           <i className="fa-brands fa-whatsapp text-lg text-emerald-600"></i>
                           <span className="text-[10px] font-extrabold leading-none">WhatsApp</span>
@@ -567,7 +568,7 @@ export default function App() {
                       {instituicaoSelecionada.chave_pix ? (
                         <button 
                           onClick={() => copiarParaClipBoard(instituicaoSelecionada.chave_pix, instituicaoSelecionada.beneficiario_pix)} 
-                          className="flex flex-col items-center justify-center gap-1 bg-[#CFA87D]/10 hover:bg-[#CFA87D]/20 transition shadow-xs text-[#8C6D4C] cursor-pointer p-2 rounded-xl border border-[#CFA87D]/20 text-center min-h-[58px]"
+                          className="flex flex-col items-center justify-center gap-1 bg-[#ceaa82]/10 hover:bg-[#ceaa82]/20 transition shadow-xs text-[#8C6D4C] cursor-pointer p-2 rounded-xl border border-[#ceaa82]/20 text-center min-h-[58px]"
                         >
                           <i className="fa-solid fa-copy text-sm"></i>
                           <span className="text-[10px] font-extrabold leading-none">Chave PIX</span>
@@ -586,7 +587,7 @@ export default function App() {
                   {/* Termômetros de Necessidades */}
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#8C6D4C] mb-3 flex items-center gap-1.5">
-                      <i className="fa-solid fa-list-check text-[#CFA87D]"></i> Termômetro de Necessidades
+                      <i className="fa-solid fa-list-check text-[#ceaa82]"></i> Termômetro de Necessidades
                     </h3>
                     
                     <div className="space-y-4">
@@ -660,7 +661,7 @@ export default function App() {
 
                   {/* Endereço / GPS */}
                   <div className="bg-[#3E3327] text-[#FDFBF7] rounded-2xl p-5 shadow-md space-y-4">
-                    <div className="flex items-center gap-2 text-[#CFA87D] font-bold text-sm">
+                    <div className="flex items-center gap-2 text-[#ceaa82] font-bold text-sm">
                       <i className="fa-solid fa-truck-ramp-box"></i>
                       <h4>Pontos de Entrega Física</h4>
                     </div>
@@ -673,9 +674,9 @@ export default function App() {
                       href={`https://maps.google.com/?q=${encodeURIComponent(instituicaoSelecionada.nome_instituicao + ', ' + instituicaoSelecionada.endereco_completo)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="w-full bg-[#524435] hover:bg-[#524435]/80 border border-[#CFA87D]/35 text-[#FDFBF7] font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer mt-1"
+                      className="w-full bg-[#524435] hover:bg-[#524435]/80 border border-[#ceaa82]/35 text-[#FDFBF7] font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer mt-1"
                     >
-                      <i className="fa-solid fa-location-arrow text-[#CFA87D]"></i> Traçar Rota no GPS / Mapas
+                      <i className="fa-solid fa-location-arrow text-[#ceaa82]"></i> Traçar Rota no GPS / Mapas
                     </a>
                   </div>
 
@@ -683,14 +684,14 @@ export default function App() {
               )}
             </main>
 
-            {/* FOOTER AJUSTADO (SEM MARGEM NAS BORDAS E COM E-MAIL DE CONTATO) */}
+            {/* FOOTER */}
             <footer className="w-full bg-[#3E3327] border-t border-[#524435] px-4 py-3 text-center shrink-0">
               <p className="text-[11px] text-slate-300 font-medium leading-relaxed">
                 Desenvolvido com ❤️ para nossa região
               </p>
               <a 
                 href="mailto:ondeajudo@gmail.com" 
-                className="text-[11px] text-[#CFA87D] hover:underline font-bold inline-flex items-center gap-1 mt-0.5"
+                className="text-[11px] text-[#ceaa82] hover:underline font-bold inline-flex items-center gap-1 mt-0.5"
               >
                 <i className="fa-regular fa-envelope text-[10px]"></i> ondeajudo@gmail.com
               </a>
@@ -709,14 +710,14 @@ export default function App() {
               <p className="text-xs text-slate-500 mb-4 leading-relaxed">
                 A chave PIX foi copiada. Ao colar no app do seu banco, confirme se o beneficiário é:
               </p>
-              <div className="bg-[#F4EFE6] border border-[#CFA87D]/30 rounded-xl p-3 mb-4">
+              <div className="bg-[#faf5f0] border border-[#ceaa82]/30 rounded-xl p-3 mb-4">
                 <span className="text-xs font-bold text-[#3E3327] block break-words">
                   {toastConfig.beneficiario}
                 </span>
               </div>
               <button 
                 onClick={fecharToast}
-                className="w-full bg-[#CFA87D] hover:bg-[#CFA87D]/90 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer"
+                className="w-full bg-[#ceaa82] hover:bg-[#ceaa82]/90 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer"
               >
                 Entendi e vou Confirmar
               </button>
