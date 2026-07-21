@@ -51,7 +51,6 @@ export default function App() {
   const URL_NECESSIDADES = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSaWeGht1cmXAtk0D5tpJmkgGIBSqWQ4vvu-guflduOTzpXZSAvfMblOfZGmxtXA-eijzP_ZdBFWPGB/pub?gid=1406763821&single=true&output=csv";
 
   useEffect(() => {
-    // Força a cor de fundo nativa no body para evitar tela branca no carregamento inicial
     document.body.style.backgroundColor = "#faf5f0";
     document.body.style.margin = "0";
 
@@ -72,7 +71,7 @@ export default function App() {
       }
       .animate-heart-beat {
         animation: heartPulse 1.3s infinite ease-in-out;
-        transform-origin: 50px 38px;
+        transform-origin: 20px 15px;
       }
       .font-logo {
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -292,31 +291,35 @@ export default function App() {
             className="w-full h-full min-h-screen flex flex-col items-center justify-center p-6 text-center select-none"
           >
             
-            {/* Ícone com Geometria Recalculada */}
-            <div className="w-52 h-52 mb-6 relative flex items-center justify-center">
-              <svg viewBox="0 0 100 120" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                {/* Pino com curvas suaves */}
+            {/* Ícone Reduzido e Proporcional */}
+            <div className="w-28 h-28 mb-6 relative flex items-center justify-center">
+              <svg viewBox="0 0 40 40" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                {/* Pino Arredondado */}
                 <path 
-                  d="M 50,0 C 28,0 10,18 10,40 C 10,70 50,115 50,115 C 50,115 90,70 90,40 C 90,18 72,0 50,0 Z" 
+                  d="M20 3C13.37 3 8 8.37 8 15c0 9 12 21 12 21s12-12 12-21c0-6.63-5.37-12-12-12z" 
                   fill="#ceaa82" 
                 />
                 
-                {/* Coração perfeitamente inserido na cabeça do pino */}
-                <path 
-                  className="animate-heart-beat"
-                  d="M 50,55 C 50,55 28,40 28,27 C 28,19 35,14 42,14 C 46,14 49,16 50,18 C 51,16 54,14 58,14 C 65,14 72,19 72,27 C 72,40 50,55 50,55 Z" 
-                  fill="#faf5f0" 
-                />
+                {/* Coração Proporcional Recortado */}
+                <g transform="translate(4.8, 6.2) scale(0.76)" className="animate-heart-beat">
+                  <path 
+                    d="M20 19.35l-1.16-1.05C14.72 14.6 12 12.14 12 9.11c0-2.46 1.94-4.39 4.4-4.39 1.39 0 2.73.65 3.6 1.67.87-1.02 2.21-1.67 3.6-1.67 2.46 0 4.4 1.93 4.4 4.39 0 3.03-2.72 5.49-6.84 9.2L20 19.35z" 
+                    fill="#faf5f0" 
+                  />
+                </g>
               </svg>
             </div>
 
-            {/* Textos da Splash Screen */}
+            {/* Textos Centralizados em Duas Linhas */}
             <div className="w-full flex flex-col items-center justify-center text-center">
-              <h1 className="font-logo font-black text-4xl tracking-tighter text-[#3E3327] mb-2 leading-none text-center">
-                Onde Ajudo?
+              <h1 className="font-logo font-black text-3xl tracking-tight text-[#ceaa82] leading-tight text-center">
+                Onde
+              </h1>
+              <h1 className="font-logo font-black text-3xl tracking-tight text-[#ceaa82] leading-tight text-center mb-3">
+                Ajudo?
               </h1>
               
-              <p className="font-logo font-medium text-sm text-[#8C6D4C] tracking-wide animate-pulse text-center">
+              <p className="font-logo font-medium text-xs text-[#8C6D4C] tracking-wide animate-pulse text-center mt-2">
                 Carregando informações...
               </p>
             </div>
@@ -337,9 +340,11 @@ export default function App() {
                   </button>
                 ) : (
                   <div className="flex items-center gap-2.5">
-                    <svg viewBox="0 0 100 120" className="w-7 h-8 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M 50,0 C 28,0 10,18 10,40 C 10,70 50,115 50,115 C 50,115 90,70 90,40 C 90,18 72,0 50,0 Z" fill="#ceaa82" />
-                      <path d="M 50,55 C 50,55 28,40 28,27 C 28,19 35,14 42,14 C 46,14 49,16 50,18 C 51,16 54,14 58,14 C 65,14 72,19 72,27 C 72,40 50,55 50,55 Z" fill="#faf5f0" />
+                    <svg viewBox="0 0 40 40" className="w-7 h-7 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20 3C13.37 3 8 8.37 8 15c0 9 12 21 12 21s12-12 12-21c0-6.63-5.37-12-12-12z" fill="#ceaa82" />
+                      <g transform="translate(4.8, 6.2) scale(0.76)">
+                        <path d="M20 19.35l-1.16-1.05C14.72 14.6 12 12.14 12 9.11c0-2.46 1.94-4.39 4.4-4.39 1.39 0 2.73.65 3.6 1.67.87-1.02 2.21-1.67 3.6-1.67 2.46 0 4.4 1.93 4.4 4.39 0 3.03-2.72 5.49-6.84 9.2L20 19.35z" fill="#faf5f0" />
+                      </g>
                     </svg>
                     <div className="flex flex-col">
                       <h1 className="font-logo font-black tracking-tighter text-[20px] leading-none text-[#ceaa82]">Onde Ajudo?</h1>
