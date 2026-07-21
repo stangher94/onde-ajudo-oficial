@@ -284,17 +284,18 @@ export default function App() {
         className="w-full max-w-md h-full min-h-screen flex flex-col relative overflow-hidden"
       >
         {/* TELA DE CARREGAMENTO (SPLASH SCREEN) */}
-          {carregando ? (
-            <div 
-              style={{ backgroundColor: '#faf5f0' }} 
-              className="w-full h-full min-h-screen flex flex-col items-center justify-center p-6 text-center select-none"
-            >
-              
-              {/* Ícone Reduzido e Proporcional (Tamanho fixado em 110px) */}
-              <div className="mb-6 flex items-center justify-center">
+        {carregando ? (
+          <div 
+            style={{ backgroundColor: '#faf5f0' }} 
+            className="w-full h-full min-h-screen flex flex-col justify-between items-center p-6 text-center select-none"
+          >
+            
+            {/* Espaçador superior e Container do Logo Centralizado */}
+            <div className="w-full flex-1 flex items-center justify-center pt-12">
+              <div className="flex items-center justify-center w-full">
                 <svg 
-                  width="110" 
-                  height="110" 
+                  width="180" 
+                  height="180" 
                   viewBox="0 0 40 40" 
                   xmlns="http://www.w3.org/2000/svg"
                 >
@@ -313,25 +314,27 @@ export default function App() {
                   </g>
                 </svg>
               </div>
-
-              {/* Textos Perfeitamente Centralizados */}
-              <div style={{ width: '100%', textAlign: 'center' }} className="flex flex-col items-center justify-center">
-                <h1 
-                  style={{ color: '#ceaa82', fontFamily: 'system-ui, -apple-system, sans-serif' }} 
-                  className="font-black text-3xl tracking-tight leading-tight text-center"
-                >
-                  Onde Ajudo?
-                </h1>
-                 <p 
-                  style={{ color: '#8C6D4C', fontFamily: 'system-ui, -apple-system, sans-serif' }} 
-                  className="font-medium text-xs tracking-wide animate-pulse text-center"
-                >
-                  Carregando informações...
-                </p>
-              </div>
-
             </div>
-          ) : (
+
+            {/* Bloco de Textos Empurrado para a Parte Inferior */}
+            <div style={{ width: '100%', textAlign: 'center' }} className="flex flex-col items-center justify-center pb-10">
+              <h1 
+                style={{ color: '#ceaa82', fontFamily: 'system-ui, -apple-system, sans-serif' }} 
+                className="font-black text-4xl tracking-tight leading-none text-center"
+              >
+                Onde Ajudo?
+              </h1>
+                          
+              <p 
+                style={{ color: '#8C6D4C', fontFamily: 'system-ui, -apple-system, sans-serif' }} 
+                className="font-medium text-xs tracking-wide animate-pulse text-center"
+              >
+                Carregando informações...
+              </p>
+            </div>
+
+          </div>
+        ) : (
         
        
           <>
