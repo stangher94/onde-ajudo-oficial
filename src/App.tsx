@@ -54,15 +54,6 @@ export default function App() {
     document.body.style.backgroundColor = "#faf5f0";
     document.body.style.margin = "0";
 
-    const scriptTailwind = document.createElement('script');
-    scriptTailwind.src = "https://cdn.tailwindcss.com";
-    document.head.appendChild(scriptTailwind);
-
-    const linkFontAwesome = document.createElement('link');
-    linkFontAwesome.rel = "stylesheet";
-    linkFontAwesome.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css";
-    document.head.appendChild(linkFontAwesome);
-
     const styleAnimation = document.createElement('style');
     styleAnimation.innerHTML = `
       @keyframes heartPulse {
@@ -80,8 +71,6 @@ export default function App() {
     document.head.appendChild(styleAnimation);
 
     return () => {
-      document.head.removeChild(scriptTailwind);
-      document.head.removeChild(linkFontAwesome);
       document.head.removeChild(styleAnimation);
     };
   }, []);
