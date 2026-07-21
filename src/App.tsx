@@ -283,49 +283,57 @@ export default function App() {
         style={{ backgroundColor: '#faf5f0' }} 
         className="w-full max-w-md h-full min-h-screen flex flex-col relative overflow-hidden"
       >
-        
         {/* TELA DE CARREGAMENTO (SPLASH SCREEN) */}
-        {carregando ? (
-          <div 
-            style={{ backgroundColor: '#faf5f0' }} 
-            className="w-full h-full min-h-screen flex flex-col items-center justify-center p-6 text-center select-none"
-          >
-            
-            {/* Ícone Reduzido e Proporcional */}
-            <div className="w-28 h-28 mb-6 relative flex items-center justify-center">
-              <svg viewBox="0 0 40 40" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                {/* Pino Arredondado */}
-                <path 
-                  d="M20 3C13.37 3 8 8.37 8 15c0 9 12 21 12 21s12-12 12-21c0-6.63-5.37-12-12-12z" 
-                  fill="#ceaa82" 
-                />
-                
-                {/* Coração Proporcional Recortado */}
-                <g transform="translate(4.8, 6.2) scale(0.76)" className="animate-heart-beat">
-                  <path 
-                    d="M20 19.35l-1.16-1.05C14.72 14.6 12 12.14 12 9.11c0-2.46 1.94-4.39 4.4-4.39 1.39 0 2.73.65 3.6 1.67.87-1.02 2.21-1.67 3.6-1.67 2.46 0 4.4 1.93 4.4 4.39 0 3.03-2.72 5.49-6.84 9.2L20 19.35z" 
-                    fill="#faf5f0" 
-                  />
-                </g>
-              </svg>
-            </div>
-
-            {/* Textos Centralizados em Duas Linhas */}
-            <div className="w-full flex flex-col items-center justify-center text-center">
-              <h1 className="font-logo font-black text-3xl tracking-tight text-[#ceaa82] leading-tight text-center">
-                Onde
-              </h1>
-              <h1 className="font-logo font-black text-3xl tracking-tight text-[#ceaa82] leading-tight text-center mb-3">
-                Ajudo?
-              </h1>
+          {carregando ? (
+            <div 
+              style={{ backgroundColor: '#faf5f0' }} 
+              className="w-full h-full min-h-screen flex flex-col items-center justify-center p-6 text-center select-none"
+            >
               
-              <p className="font-logo font-medium text-xs text-[#8C6D4C] tracking-wide animate-pulse text-center mt-2">
-                Carregando informações...
-              </p>
-            </div>
+              {/* Ícone Reduzido e Proporcional (Tamanho fixado em 110px) */}
+              <div className="mb-6 flex items-center justify-center">
+                <svg 
+                  width="110" 
+                  height="110" 
+                  viewBox="0 0 40 40" 
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* Pino Arredondado */}
+                  <path 
+                    d="M20 3C13.37 3 8 8.37 8 15c0 9 12 21 12 21s12-12 12-21c0-6.63-5.37-12-12-12z" 
+                    fill="#ceaa82" 
+                  />
+                  
+                  {/* Coração Interno Ajustado e Proporcional */}
+                  <g transform="translate(7.2, 7.5) scale(0.64)" className="animate-heart-beat">
+                    <path 
+                      d="M20 19.35l-1.16-1.05C14.72 14.6 12 12.14 12 9.11c0-2.46 1.94-4.39 4.4-4.39 1.39 0 2.73.65 3.6 1.67.87-1.02 2.21-1.67 3.6-1.67 2.46 0 4.4 1.93 4.4 4.39 0 3.03-2.72 5.49-6.84 9.2L20 19.35z" 
+                      fill="#faf5f0" 
+                    />
+                  </g>
+                </svg>
+              </div>
 
-          </div>
-        ) : (
+              {/* Textos Perfeitamente Centralizados */}
+              <div style={{ width: '100%', textAlign: 'center' }} className="flex flex-col items-center justify-center">
+                <h1 
+                  style={{ color: '#ceaa82', fontFamily: 'system-ui, -apple-system, sans-serif' }} 
+                  className="font-black text-3xl tracking-tight leading-tight text-center"
+                >
+                  Onde Ajudo?
+                </h1>
+                 <p 
+                  style={{ color: '#8C6D4C', fontFamily: 'system-ui, -apple-system, sans-serif' }} 
+                  className="font-medium text-xs tracking-wide animate-pulse text-center"
+                >
+                  Carregando informações...
+                </p>
+              </div>
+
+            </div>
+          ) : (
+        
+       
           <>
             {/* HEADER */}
             <header className="bg-white border-b border-[#ceaa82]/25 text-[#3E3327] px-4 py-3.5 flex items-center justify-between shadow-xs shrink-0 z-10">
