@@ -4,7 +4,7 @@
   "description": "Encontre e apoie instituições de caridade e projetos sociais locais.",
   "start_url": "/",
   "scope": "/",
-  "display": "standalone",
+  "display": "browser",
   "background_color": "#faf5f0",
   "theme_color": "#ceaa82",
   "icons": [
