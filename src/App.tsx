@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 // Interfaces de dados
 interface Instituicao {
   id: string;
+  slug?: string;
   nome_instituicao: string;
   categoria: string;
   whatsapp_contato: string;
@@ -118,6 +119,33 @@ export default function App() {
     carregarDados();
   }, []);
 
+  // Deep link: se a URL vier com ?inst=slug (ou id), abre direto no perfil dessa instituição
+  useEffect(() => {
+    if (instituicoes.length === 0 || instituicaoSelecionada) return;
+    const params = new URLSearchParams(window.location.search);
+    const instParam = params.get('inst');
+    if (!instParam) return;
+    const encontrada = instituicoes.find(i =>
+      (i.slug && i.slug.trim().toLowerCase() === instParam.toLowerCase()) ||
+      String(i.id).trim().toLowerCase() === instParam.toLowerCase()
+    );
+    if (encontrada) setInstituicaoSelecionada(encontrada);
+  }, [instituicoes]);
+
+  // Helpers de navegação: mantêm a URL sincronizada com a instituição aberta
+  const obterSlugInstituicao = (inst: Instituicao) => (inst.slug && inst.slug.trim()) || inst.id;
+
+  const selecionarInstituicao = (inst: Instituicao) => {
+    setInstituicaoSelecionada(inst);
+    const slug = obterSlugInstituicao(inst);
+    window.history.pushState({}, '', `?inst=${encodeURIComponent(slug)}`);
+  };
+
+  const voltarParaLista = () => {
+    setInstituicaoSelecionada(null);
+    window.history.pushState({}, '', window.location.pathname);
+  };
+
   function interpretarCSV(textoCsv: string): any[] {
     const linhas = textoCsv.split(/\r?\n/).filter(linha => inlineTrim(linha) !== "");
     if (linhas.length === 0) return [];
@@ -181,15 +209,16 @@ export default function App() {
     setToastConfig(prev => ({ ...prev, visivel: false }));
   };
 
-  const compartilharNecessidade = (instNome: string, itemNome: string, espec: string) => {
+  const compartilharNecessidade = (instNome: string, itemNome: string, espec: string, instSlug: string) => {
     const descricaoItem = espec ? `(${espec})` : '';
-    const textoCompartilhamento = `🚨 *${instNome}* precisa de ajuda!\n\nEles estão precisando urgente de: *${itemNome}* ${descricaoItem}.\n\nQuer ajudar ou ver outras necessidades deles? Acesse o site:\n\n👉 https://ondeajudo.com.br\n\n_Ajude a espalhar o bem compartilhando!_ ❤️`;
+    const linkDireto = `https://ondeajudo.com.br/?inst=${encodeURIComponent(instSlug)}`;
+    const textoCompartilhamento = `🚨 *${instNome}* precisa de ajuda!\n\nEles estão precisando urgente de: *${itemNome}* ${descricaoItem}.\n\nQuer ajudar ou ver outras necessidades deles? Acesse o site:\n\n👉 ${linkDireto}\n\n_Ajude a espalhar o bem compartilhando!_ ❤️`;
     
     if (navigator.share) {
       navigator.share({
         title: 'Onde Ajudo?',
         text: `🚨 ${instNome} precisa de ajuda!\n\nEles estão precisando urgente de: ${itemNome} ${descricaoItem}.\n\nQuer ajudar ou ver outras necessidades deles? Acesse o site:\n\n👉`,
-        url: 'https://ondeajudo.com.br'
+        url: linkDireto
       }).catch(console.error);
     } else {
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoCompartilhamento)}`, '_blank');
@@ -332,7 +361,7 @@ export default function App() {
               <div className="flex items-center gap-2">
                 {instituicaoSelecionada ? (
                   <button 
-                    onClick={() => setInstituicaoSelecionada(null)}
+                    onClick={voltarParaLista}
                     className="mr-2 text-[#3E3327] hover:text-[#ceaa82] transition text-sm font-bold cursor-pointer flex items-center gap-1.5"
                   >
                     <i className="fa-solid fa-chevron-left text-xs"></i>
@@ -393,7 +422,7 @@ export default function App() {
                         return (
                           <div 
                             key={inst.id}
-                            onClick={() => setInstituicaoSelecionada(inst)}
+                            onClick={() => selecionarInstituicao(inst)}
                             className="bg-white rounded-2xl p-3.5 border border-[#ceaa82]/10 hover:border-[#ceaa82]/40 shadow-xs flex gap-3.5 items-center cursor-pointer hover:shadow-md transition-all duration-200 active:scale-[0.99]"
                           >
                             <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100 border border-slate-100">
@@ -466,7 +495,7 @@ export default function App() {
                 <div className="space-y-5">
                   
                   <button 
-                    onClick={() => setInstituicaoSelecionada(null)}
+                    onClick={voltarParaLista}
                     className="bg-white border border-[#ceaa82]/25 text-[#3E3327] px-3.5 py-2 rounded-full text-xs font-bold shadow-xs hover:bg-slate-50 transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <i className="fa-solid fa-arrow-left"></i> Voltar para Lista
@@ -661,7 +690,7 @@ export default function App() {
                                   </a>
 
                                   <button
-                                    onClick={() => compartilharNecessidade(instituicaoSelecionada.nome_instituicao, nec.item_nome, nec.especificacoes)}
+                                    onClick={() => compartilharNecessidade(instituicaoSelecionada.nome_instituicao, nec.item_nome, nec.especificacoes, obterSlugInstituicao(instituicaoSelecionada))}
                                     className="col-span-1 bg-slate-100 hover:bg-slate-200 border border-slate-200/80 text-slate-500 rounded-lg flex items-center justify-center cursor-pointer transition shadow-xs"
                                     title="Compartilhar Necessidade"
                                   >
