@@ -1,0 +1,30 @@
+{
+  "name": "Onde Ajudo? | Apoie Instituições de Caridade Locais",
+  "short_name": "Onde Ajudo?",
+  "description": "Encontre e apoie instituições de caridade e projetos sociais locais.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf5f0",
+  "theme_color": "#ceaa82",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
