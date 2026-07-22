@@ -62,7 +62,7 @@ export default function App() {
       }
       .animate-heart-beat {
         animation: heartPulse 1.3s infinite ease-in-out;
-        transform-origin: 20px 15px;
+        transform-origin: 20px 12px;
       }
       .font-logo {
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -294,11 +294,13 @@ export default function App() {
                 />
                 
                 {/* Coração Interno Ajustado e Proporcional */}
-                <g transform="translate(4.8, 6.2) scale(0.76)" className="animate-heart-beat">
-                  <path 
-                    d="M20 19.35l-1.16-1.05C14.72 14.6 12 12.14 12 9.11c0-2.46 1.94-4.39 4.4-4.39 1.39 0 2.73.65 3.6 1.67.87-1.02 2.21-1.67 3.6-1.67 2.46 0 4.4 1.93 4.4 4.39 0 3.03-2.72 5.49-6.84 9.2L20 19.35z" 
-                    fill="#faf5f0" 
-                  />
+                <g transform="translate(4.8, 6.2) scale(0.76)">
+                  <g className="animate-heart-beat">
+                    <path 
+                      d="M20 19.35l-1.16-1.05C14.72 14.6 12 12.14 12 9.11c0-2.46 1.94-4.39 4.4-4.39 1.39 0 2.73.65 3.6 1.67.87-1.02 2.21-1.67 3.6-1.67 2.46 0 4.4 1.93 4.4 4.39 0 3.03-2.72 5.49-6.84 9.2L20 19.35z" 
+                      fill="#faf5f0" 
+                    />
+                  </g>
                 </g>
               </svg>
 
